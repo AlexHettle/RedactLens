@@ -6,9 +6,9 @@
 
 ## Reproducibility metadata
 
-- Generated (UTC): `2026-07-28T01:30:52+00:00`
+- Generated (UTC): `2026-07-28T16:25:10+00:00`
 - Corpus version: `3.0.0`
-- Detector configuration SHA-256: `0697e7f34bcd1668d6fd1c3d16a910c2828bca1d209f658623d7080d7223788f`
+- Detector configuration SHA-256: `4a227fbc1e888e47f6d7242850465794cdf2132eb2e144516aec2c5a9e389d2e`
 - Evaluation source SHA-256: `740997ba8304d1fae005ed1cef38aca83146d55778fec3258e6712f92574e5f1`
 - Selected confidence-weight profile: `base+0.00-contextx1.25-v1` (base offset +0.00, context scale 1.25)
 - Confidence-weight policy: Minimize calibration Brier score plus expected calibration error; then maximize eligible-threshold recall and precision; preserve the deployed profile only on an identical best plateau.
@@ -38,8 +38,8 @@ Holdout emitted 40 canonical findings from 58 raw detector opinions across 27 do
 | Tier B rescue recall | 0.345 |
 | False positives / 1,000 files | 407.41 |
 | Canonical findings / planted value | 1.379 |
-| Files / second (single local run) | 207.2 |
-| MB / second (single local run) | 0.14 |
+| Files / second (single local run) | 432.0 |
+| MB / second (single local run) | 0.29 |
 
 ## Calibration-only confidence-weight selection
 
@@ -167,7 +167,7 @@ Prompt source SHA-256: `ed8b8e363a4b3e58e7f45dceec06a3b0bd6e1c20aab5ba4260b497ca
 Prompt path normalization: `temporary corpus root -> <EVAL_CORPUS>`.
 Inference telemetry: 0 attempts, 0 successes, 0 failures.
 
-Status: `not_requested`.
+Status: `skipped_unavailable`. Ollama or the configured model was not available.
 
 ## Interpretation and limits
 

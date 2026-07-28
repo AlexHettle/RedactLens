@@ -610,6 +610,33 @@ def test_linked_redactlensignore_is_not_followed(tmp_path):
     assert entries[0].issue is None
 
 
+@pytest.mark.parametrize("ignore_name", [".redactlensignore", ".redactscoutignore"])
+def test_ignore_control_symlink_is_omitted_when_walked_as_a_directory(
+    monkeypatch,
+    tmp_path,
+    ignore_name,
+):
+    root = tmp_path / "root"
+    root.mkdir()
+    target = root / "visible.txt"
+    target.write_text("visible")
+
+    def walk_with_linked_control_file(path, **_callbacks):
+        assert path == root
+        yield str(root), [ignore_name], [target.name]
+
+    monkeypatch.setattr(
+        files_module,
+        "_walk_directory_checkpointed",
+        walk_with_linked_control_file,
+    )
+
+    entries = list(discover_files([str(root)], ScanOptions()))
+
+    assert [entry.path for entry in entries] == [str(target)]
+    assert entries[0].issue is None
+
+
 def test_ignore_rule_cap_does_not_keep_a_broad_rule_and_drop_late_negation(monkeypatch, tmp_path):
     monkeypatch.setattr(files_module, "_MAX_IGNORE_RULES", 1)
     (tmp_path / ".redactlensignore").write_text("*.txt\n!important.txt\n")

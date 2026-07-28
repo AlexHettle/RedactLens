@@ -686,6 +686,8 @@ def discover_files(
             retained: list[str] = []
             for name in sorted(dirs, key=name_sort_key):
                 check()
+                if name in _IGNORE_FILE_NAMES:
+                    continue
                 candidate = root_path / name
                 if _directory_name_identity(name) in ignored_directories:
                     entries.append(

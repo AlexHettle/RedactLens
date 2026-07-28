@@ -20,3 +20,9 @@
 # Generated evaluation evidence is canonical UTF-8 with LF line endings.
 /tooling/eval/report.md text eol=lf
 /tooling/eval/report.json text eol=lf
+
+# GitHub's Windows runners enable CRLF conversion. Keep source files consumed
+# by raw-byte hashes and cross-platform format checks canonical.
+/tooling/scripts/*.py text eol=lf
+/tooling/scripts/*.mjs text eol=lf
+/packages/frontend/** text=auto eol=lf

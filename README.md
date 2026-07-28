@@ -14,10 +14,10 @@
 </p>
 
 <p align="center">
-  <img alt="Platform: Windows 10 version 1809 or later and Windows 11" src="https://img.shields.io/badge/platform-Windows%2010%201809%2B%20%7C%2011-2E7D52?style=flat-square">
+  <img alt="Platform: Windows 10 and Windows 11" src="https://img.shields.io/badge/platform-Windows%2010%20%7C%20Windows%2011-2E7D52?style=flat-square">
   <img alt="Privacy: local first" src="https://img.shields.io/badge/privacy-local--first-2E7D52?style=flat-square">
   <img alt="AI: Ollama optional" src="https://img.shields.io/badge/AI-Ollama%20optional-2E7D52?style=flat-square">
-  <img alt="Tests: 1,065 passing" src="https://img.shields.io/badge/tests-1%2C065%20passing-2E7D52?style=flat-square">
+  <img alt="Tests: 1,079 automated" src="https://img.shields.io/badge/tests-1%2C079%20automated-2E7D52?style=flat-square">
 </p>
 
 <p align="center">
@@ -305,7 +305,7 @@ For the project's complete data-handling statement and vulnerability-reporting p
 
 RedactLens is tested beyond the happy path.
 
-- **1,065 passing automated tests** in the current baseline: 853 Python and 212 frontend tests.
+- **1,079 automated tests** in the current suite: 867 Python and 212 frontend tests. Platform-specific filesystem tests skip when Windows does not grant the required link privileges.
 - **12 verification gates** cover tests, production builds, browser workflows, CLI behavior,
   formatting, linting, performance, and evaluation freshness.
 - The release workflow smoke-tests the packaged app and a silent install/uninstall cycle.

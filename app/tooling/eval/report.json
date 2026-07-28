@@ -1,6 +1,6 @@
 {
   "artifact": {
-    "report_sha256": "b05c192cfad5ba2f77e215defe60fb7c1b632e4eb78cba7d51b718ac638dac6a"
+    "report_sha256": "6f10ec3c357c785ba2e06961de1df7c8d6a93107f33d85955e0ccba6b1752a06"
   },
   "calibration": {
     "metrics": {
@@ -282,9 +282,9 @@
         }
       },
       "performance": {
-        "elapsed_seconds": 0.06956689999788068,
-        "files_per_second": 373.7409601519124,
-        "megabytes_per_second": 0.24313286923113253,
+        "elapsed_seconds": 0.05009199999994962,
+        "files_per_second": 519.0449572791293,
+        "megabytes_per_second": 0.3376587079776613,
         "megabytes_scanned": 0.016914
       },
       "raw_detector_hits": 58,
@@ -860,9 +860,9 @@
         }
       },
       "performance": {
-        "elapsed_seconds": 0.1303360999954748,
-        "files_per_second": 207.1567278822784,
-        "megabytes_per_second": 0.13907888912303928,
+        "elapsed_seconds": 0.06250020000015866,
+        "files_per_second": 431.99861760332703,
+        "megabytes_per_second": 0.2900310718998337,
         "megabytes_scanned": 0.018127
       },
       "raw_detector_hits": 58,
@@ -904,7 +904,8 @@
       "failures": 0,
       "successes": 0
     },
-    "status": "not_requested"
+    "reason": "Ollama or the configured model was not available.",
+    "status": "skipped_unavailable"
   },
   "metadata": {
     "calibration_minimum_precision": 0.9,
@@ -942,9 +943,9 @@
       "profile_id": "base+0.00-contextx1.25-v1"
     },
     "deployed_threshold_before_calibration": 0.85,
-    "detector_configuration_sha256": "0697e7f34bcd1668d6fd1c3d16a910c2828bca1d209f658623d7080d7223788f",
+    "detector_configuration_sha256": "4a227fbc1e888e47f6d7242850465794cdf2132eb2e144516aec2c5a9e389d2e",
     "evaluation_source_sha256": "740997ba8304d1fae005ed1cef38aca83146d55778fec3258e6712f92574e5f1",
-    "generated_at_utc": "2026-07-28T01:30:52+00:00",
+    "generated_at_utc": "2026-07-28T16:25:10+00:00",
     "selected_confidence_weight_profile": {
       "base_offset": 0.0,
       "context_scale": 1.25,

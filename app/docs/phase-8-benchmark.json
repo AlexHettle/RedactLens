@@ -1,10 +1,10 @@
 {
   "schema_version": 2,
-  "generated_at": "2026-07-28T01:30:36.998381Z",
-  "source_digest": "c12efb0537c1dda3656788d26323e2c28eb880e390e178c20d12286864f90be8",
+  "generated_at": "2026-07-28T16:24:37.247387Z",
+  "source_digest": "b850a5aca9d22ca990cce0d6c3a9e9529466a3d41fe59e6a8f19588f74b129ce",
   "fixture_digest": "7b1167655db5951df24a9746b040615c8133984ee69db7b6d19bc02536014bba",
   "environment": {
-    "python_version": "3.12.13",
+    "python_version": "3.12.3",
     "python_implementation": "CPython",
     "platform": "Windows-11-10.0.26200-SP0",
     "machine": "AMD64",
@@ -79,17 +79,17 @@
   },
   "measurements": {
     "small_1000": {
-      "wall_ms": 802,
+      "wall_ms": 699,
       "wall_samples_ms": [
-        1916,
-        802,
-        790
+        1613,
+        684,
+        699
       ],
-      "peak_memory_bytes": 62062592,
+      "peak_memory_bytes": 61038592,
       "peak_memory_samples_bytes": [
-        61874176,
-        62062592,
-        61898752
+        60268544,
+        60506112,
+        61038592
       ],
       "findings": 2,
       "summary": {
@@ -113,13 +113,13 @@
         "total_files": 1000,
         "status": "complete",
         "incomplete": false,
-        "duration_ms": 800,
-        "peak_memory_bytes": 62062592,
+        "duration_ms": 698,
+        "peak_memory_bytes": 61038592,
         "bytes_scanned": 25928,
-        "files_per_second": 1249.588,
-        "megabytes_per_second": 0.032,
-        "extraction_seconds": 1.768916,
-        "detection_seconds": 0.214614,
+        "files_per_second": 1433.452,
+        "megabytes_per_second": 0.037,
+        "extraction_seconds": 1.53948,
+        "detection_seconds": 0.305171,
         "llm_seconds": 0.0,
         "llm_attempts": 0,
         "llm_successes": 0,
@@ -127,17 +127,17 @@
       }
     },
     "small_10000": {
-      "wall_ms": 7862,
+      "wall_ms": 7006,
       "wall_samples_ms": [
-        18927,
-        7839,
-        7862
+        16606,
+        7006,
+        6695
       ],
-      "peak_memory_bytes": 69505024,
+      "peak_memory_bytes": 67067904,
       "peak_memory_samples_bytes": [
-        69505024,
-        69427200,
-        69263360
+        66678784,
+        67067904,
+        66875392
       ],
       "findings": 20,
       "summary": {
@@ -161,13 +161,13 @@
         "total_files": 10000,
         "status": "complete",
         "incomplete": false,
-        "duration_ms": 7851,
-        "peak_memory_bytes": 69263360,
+        "duration_ms": 6995,
+        "peak_memory_bytes": 67067904,
         "bytes_scanned": 269270,
-        "files_per_second": 1273.645,
-        "megabytes_per_second": 0.034,
-        "extraction_seconds": 17.239288,
-        "detection_seconds": 2.273985,
+        "files_per_second": 1429.581,
+        "megabytes_per_second": 0.038,
+        "extraction_seconds": 15.474769,
+        "detection_seconds": 3.070064,
         "llm_seconds": 0.0,
         "llm_attempts": 0,
         "llm_successes": 0,
@@ -175,17 +175,17 @@
       }
     },
     "large_text": {
-      "wall_ms": 18678,
+      "wall_ms": 18614,
       "wall_samples_ms": [
-        18752,
-        18678,
-        18455
+        18632,
+        18614,
+        18580
       ],
-      "peak_memory_bytes": 101576704,
+      "peak_memory_bytes": 100163584,
       "peak_memory_samples_bytes": [
-        100929536,
-        101576704,
-        101109760
+        99872768,
+        99807232,
+        100163584
       ],
       "findings": 3,
       "summary": {
@@ -209,13 +209,13 @@
         "total_files": 3,
         "status": "complete",
         "incomplete": false,
-        "duration_ms": 18677,
-        "peak_memory_bytes": 101576704,
+        "duration_ms": 18613,
+        "peak_memory_bytes": 99807232,
         "bytes_scanned": 65000057,
         "files_per_second": 0.161,
-        "megabytes_per_second": 3.48,
-        "extraction_seconds": 0.673681,
-        "detection_seconds": 23.757657,
+        "megabytes_per_second": 3.492,
+        "extraction_seconds": 0.606144,
+        "detection_seconds": 23.722241,
         "llm_seconds": 0.0,
         "llm_attempts": 0,
         "llm_successes": 0,
@@ -223,17 +223,17 @@
       }
     },
     "large_office": {
-      "wall_ms": 1017,
+      "wall_ms": 1037,
       "wall_samples_ms": [
-        1120,
-        1017,
-        1015
+        1122,
+        1032,
+        1037
       ],
-      "peak_memory_bytes": 134672384,
+      "peak_memory_bytes": 132579328,
       "peak_memory_samples_bytes": [
-        134672384,
-        134365184,
-        134098944
+        132579328,
+        132476928,
+        131919872
       ],
       "findings": 1,
       "summary": {
@@ -257,13 +257,13 @@
         "total_files": 1,
         "status": "complete",
         "incomplete": false,
-        "duration_ms": 1017,
-        "peak_memory_bytes": 134365184,
+        "duration_ms": 1037,
+        "peak_memory_bytes": 131919872,
         "bytes_scanned": 7280333,
-        "files_per_second": 0.983,
-        "megabytes_per_second": 7.159,
-        "extraction_seconds": 0.400738,
-        "detection_seconds": 0.612065,
+        "files_per_second": 0.965,
+        "megabytes_per_second": 7.023,
+        "extraction_seconds": 0.420823,
+        "detection_seconds": 0.612022,
         "llm_seconds": 0.0,
         "llm_attempts": 0,
         "llm_successes": 0,
@@ -271,17 +271,17 @@
       }
     },
     "nested_archives": {
-      "wall_ms": 5,
+      "wall_ms": 4,
       "wall_samples_ms": [
-        13,
-        5,
-        5
+        12,
+        4,
+        3
       ],
-      "peak_memory_bytes": 61140992,
+      "peak_memory_bytes": 59564032,
       "peak_memory_samples_bytes": [
-        60850176,
-        61140992,
-        60891136
+        59207680,
+        59506688,
+        59564032
       ],
       "findings": 1,
       "summary": {
@@ -306,12 +306,12 @@
         "status": "complete",
         "incomplete": false,
         "duration_ms": 4,
-        "peak_memory_bytes": 60891136,
+        "peak_memory_bytes": 59506688,
         "bytes_scanned": 226,
-        "files_per_second": 231.954,
-        "megabytes_per_second": 0.052,
-        "extraction_seconds": 0.001688,
-        "detection_seconds": 0.000263,
+        "files_per_second": 275.217,
+        "megabytes_per_second": 0.062,
+        "extraction_seconds": 0.001619,
+        "detection_seconds": 0.000439,
         "llm_seconds": 0.0,
         "llm_attempts": 0,
         "llm_successes": 0,
@@ -319,17 +319,17 @@
       }
     },
     "mostly_binary": {
-      "wall_ms": 362,
+      "wall_ms": 300,
       "wall_samples_ms": [
-        916,
-        362,
-        357
+        846,
+        300,
+        296
       ],
-      "peak_memory_bytes": 62386176,
+      "peak_memory_bytes": 60641280,
       "peak_memory_samples_bytes": [
-        62386176,
-        62320640,
-        61808640
+        60411904,
+        60641280,
+        60461056
       ],
       "findings": 1,
       "summary": {
@@ -353,12 +353,12 @@
         "total_files": 501,
         "status": "complete",
         "incomplete": false,
-        "duration_ms": 361,
-        "peak_memory_bytes": 62320640,
+        "duration_ms": 299,
+        "peak_memory_bytes": 60641280,
         "bytes_scanned": 19,
-        "files_per_second": 1388.62,
+        "files_per_second": 1676.306,
         "megabytes_per_second": 0.0,
-        "extraction_seconds": 0.853082,
+        "extraction_seconds": 0.743669,
         "detection_seconds": 0.000322,
         "llm_seconds": 0.0,
         "llm_attempts": 0,
