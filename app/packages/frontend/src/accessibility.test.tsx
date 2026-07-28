@@ -13,8 +13,12 @@ import type { PublicFinding, PublicScanResult, RemediationPlan } from './types'
 
 vi.mock('./api/client')
 
-const tokensCss = readFileSync(resolve(process.cwd(), 'src/index.css'), 'utf8')
-const appCss = readFileSync(resolve(process.cwd(), 'src/App.css'), 'utf8')
+function normalizeNewlines(source: string): string {
+  return source.replace(/\r\n?/g, '\n')
+}
+
+const tokensCss = normalizeNewlines(readFileSync(resolve(process.cwd(), 'src/index.css'), 'utf8'))
+const appCss = normalizeNewlines(readFileSync(resolve(process.cwd(), 'src/App.css'), 'utf8'))
 
 const finding: PublicFinding = {
   id: 'finding-1',

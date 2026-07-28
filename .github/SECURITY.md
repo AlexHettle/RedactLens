@@ -46,7 +46,7 @@ The application:
 - requires explicit confirmation before replacing original files.
 
 The detailed assets, trust boundaries, abuse cases, and residual risks are documented in the
-[threat model](../app/docs/threat-model.md).
+[threat model](https://github.com/AlexHettle/RedactLens/blob/main/app/docs/threat-model.md).
 
 ## Safe testing
 
