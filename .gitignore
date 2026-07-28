@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.cache/
+.artifacts/
+
+# Node / frontend
+.pnpm-store/
+app/packages/frontend/node_modules/
+app/packages/frontend/dist/
+app/packages/frontend/.vite/
+npm-debug.log*
+
+# Eval artifacts
+app/tooling/eval/corpus/*
+!app/tooling/eval/corpus/.gitkeep
+
+# Generated copies may still contain sensitive values that were not selected.
+*-auto-redacted-copy
+*-auto-redacted-copy.*
+# Legacy output name retained so older generated files also stay untracked.
+*.sanitized
+
+# Editors / OS
+.agents/
+.vscode/
+.idea/
+Thumbs.db
+
+# Env
+.env
+.env.local
+
+# One-click launcher log (see launch.py)
+redactlens-launcher.log

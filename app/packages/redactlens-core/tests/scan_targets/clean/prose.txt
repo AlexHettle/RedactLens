@@ -1,0 +1,5 @@
+This document describes how our support team should greet new customers, walk
+them through the onboarding checklist, and confirm that their workspace is
+set up correctly before closing out the ticket. Please remember to be warm,
+patient, and thorough, and to escalate anything unusual to a team lead rather
+than guessing at the right next step.

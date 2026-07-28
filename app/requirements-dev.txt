@@ -1,0 +1,7 @@
+-e ./packages/redactlens-core
+-e ./packages/cli
+-e ./packages/api[test]
+-e ./tooling/eval
+pywebview==6.2.1
+pytest>=8,<10
+ruff>=0.13,<1

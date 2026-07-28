@@ -1,0 +1,15 @@
+id: private_key_header
+category: credential
+description: "Private key (PEM block or header)"
+risk_lesson: "A private key can let an attacker impersonate this machine or service, decrypt past traffic, or sign requests as you."
+method: regex
+pattern: '(?s)-----BEGIN (?:RSA |EC |DSA |OPENSSH |PGP )?PRIVATE KEY-----(?:.*?-----END (?:RSA |EC |DSA |OPENSSH |PGP )?PRIVATE KEY-----)?'
+max_match_length: 1048576
+base_confidence: 0.97
+specificity: 100
+suppresses: [high_entropy_secret]
+context:
+  boosters: []
+  suppressors:
+    - { pattern: '(?i)\b(examples?|tests?|samples?|fakes?)\b', weight: -0.40 }
+    - { in_path: '(?i)\b(test|fixtures?|samples?)\b', weight: -0.30 }

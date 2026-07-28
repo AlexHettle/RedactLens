@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="RedactLens">
+  <path
+    fill="#356f4e"
+    d="M32 3C24.5 8.7 16.7 11.8 8 13v17.4C8 45 17.2 56.1 32 62c14.8-5.9 24-17 24-31.6V13c-8.7-1.2-16.5-4.3-24-10Z"
+  />
+  <path
+    fill="none"
+    stroke="#f4f7fa"
+    stroke-linecap="round"
+    stroke-width="5.5"
+    d="m40.2 39.2 8.2 8.2"
+  />
+  <circle cx="29.5" cy="28.5" r="13.5" fill="none" stroke="#f4f7fa" stroke-width="5.5" />
+  <rect width="17" height="5" x="21" y="26" fill="#1e252e" rx="2.5" />
+</svg>

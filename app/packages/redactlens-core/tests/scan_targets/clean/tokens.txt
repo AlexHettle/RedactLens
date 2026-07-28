@@ -1,0 +1,2 @@
+session_token = eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlFUP0THsR8U
+db_conn = postgres://admin:hunter2@db.internal:5432/prod

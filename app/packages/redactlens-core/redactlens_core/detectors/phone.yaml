@@ -1,0 +1,14 @@
+id: phone
+category: personal_id
+description: "Phone number"
+risk_lesson: "A phone number enables unwanted contact and SIM-swap or social-engineering attacks when paired with other personal data."
+method: regex
+pattern: '\b(?:\+?1[-. ]?)?\(?\d{3}\)?[-. ]?\d{3}[-. ]?\d{4}\b'
+base_confidence: 0.50
+specificity: 50
+context:
+  boosters:
+    - { pattern: '(?i)phone|call|mobile|cell|tel\.?:', weight: +0.15 }
+  suppressors:
+    - { pattern: '(?i)\b(examples?|tests?|samples?|fakes?)\b', weight: -0.40 }
+    - { in_path: '(?i)\b(test|fixtures?|samples?)\b', weight: -0.30 }

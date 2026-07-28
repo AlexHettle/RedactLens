@@ -1,0 +1,15 @@
+id: aws_access_key
+category: credential
+description: "AWS access key ID"
+risk_lesson: "An AWS access key can grant an attacker direct control over your cloud account, including spinning up billable resources or accessing stored data."
+method: regex
+pattern: '\b(?:AKIA|ASIA)[0-9A-Z]{16}\b'
+base_confidence: 0.90
+specificity: 100
+suppresses: [high_entropy_secret]
+context:
+  boosters:
+    - { pattern: '(?i)aws|access_key|access key|aws_access_key_id', weight: +0.05 }
+  suppressors:
+    - { pattern: '(?i)\b(examples?|tests?|samples?|fakes?)\b', weight: -0.40 }
+    - { in_path: '(?i)\b(test|fixtures?|samples?)\b', weight: -0.30 }

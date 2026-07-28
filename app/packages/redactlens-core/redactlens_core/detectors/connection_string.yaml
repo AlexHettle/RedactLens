@@ -1,0 +1,18 @@
+id: connection_string
+category: credential
+description: "Database/service connection string with embedded credentials"
+risk_lesson: "A connection string with a username and password grants direct access to a database or service, often with full read/write privileges."
+method: regex
+pattern: >-
+  (?P<wrapped>(?:(?P<quote>["'`])|(?P<paren>\()|(?P<bracket>\[)|(?P<brace>\{)|(?P<angle><)))?(?P<value>(?i:\b[a-z][a-z0-9+.-]{0,31}://[a-z0-9._~!$&'()*+,;=%-]{1,256}:[a-z0-9._~!$&'()*+,;=:%-]{1,256}@(?:\[[a-z0-9:.%_-]{2,255}\]|[a-z0-9._~%-]{1,255})(?::[0-9]{1,5})?(?(wrapped)[a-z0-9._~!$&'()*+,;=:@%/?#-]{0,4096}?|[a-z0-9._~!$&'()*+,;=:@%/?#-]{0,4096}?)))(?(quote)(?P=quote)|(?(paren)\)|(?(bracket)\]|(?(brace)\}|(?(angle)>|(?=\s|$|["`}\]>]|,(?=\s|$|[}\]]|["']?[a-z_][a-z0-9_.-]{0,254}["']?\s{0,32}:)|;(?=\s|$|[`})\]])|\)(?=\s|$|[.,;:!?`}\]>])|\.(?=\s|$|[)}\]])))))))(?(wrapped)(?=\s|$|[,;.)\]}>])|)
+max_match_length: 5000
+max_lookaround_length: 300
+base_confidence: 0.85
+specificity: 100
+suppresses: [email, high_entropy_secret]
+context:
+  boosters:
+    - { pattern: '(?i)database|\bdb\b|conn(?:ection)?', weight: +0.05 }
+  suppressors:
+    - { pattern: '(?i)\b(examples?|tests?|samples?|fakes?)\b', weight: -0.40 }
+    - { in_path: '(?i)\b(test|fixtures?|samples?)\b', weight: -0.30 }

@@ -1,0 +1,27 @@
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+cache-dir = ".cache/ruff"
+src = [
+    "packages/redactlens-core/redactlens_core",
+    "packages/cli/redactlens_cli",
+    "packages/api/redactlens_api",
+    "tooling/eval",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+# B008: Typer/FastAPI both rely on function calls (Option(...)/Depends(...)) as
+# argument defaults by design -- evaluated once at route/command definition
+# time, not the mutable-default-arg footgun this rule guards against.
+ignore = ["B008"]
+
+[tool.pytest.ini_options]
+cache_dir = ".cache/pytest"
+testpaths = [
+    "tests",
+    "packages/redactlens-core/tests",
+    "packages/cli/tests",
+    "packages/api/tests",
+    "tooling/eval/tests",
+]

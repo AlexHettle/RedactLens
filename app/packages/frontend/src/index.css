@@ -1,0 +1,275 @@
+/* RedactLens design tokens. The whole UI is driven by these custom properties, swapped per theme via
+   the data-theme attribute on <html> (set before paint in index.html and
+   kept in sync by App). User-triggered swaps temporarily opt into the
+   transition below; initial page paint stays instantaneous. */
+
+:root {
+  --bg: #f4f7fa;
+  --chrome: #eef2f6;
+  --surface: #ffffff;
+  --surface-2: #eff2f5;
+  --ink: #1e252e;
+  --muted: #626b76;
+  --faint: #66707b;
+  --faint-2: #626b76;
+  --line: #dee3e7;
+  --line-2: #d4d8dd;
+  --track: #dde2e6;
+  /* Teal is reserved for navigation, focus, and primary actions. */
+  --accent: #005670;
+  --accent-2: #0e647f;
+  --accent-deep: #005670;
+  --action-accent: #0e647f;
+  --on-action-accent: #ffffff;
+  --accent-soft: #e5f2f6;
+  --accent-border: #85b7cb;
+  /* Green communicates local availability, successful completion, and inclusion. */
+  --success: #318454;
+  --success-ink: #236b42;
+  --success-soft: #e0f5e6;
+  --success-border: #a8d5b5;
+  --chip-on-border: #8bbfa2;
+  --dot-off-bg: #e4e8ec;
+  --dot-off-ink: #747b83;
+  --control-border: #747b83;
+  --control-selected: #318454;
+  --on-control-selected: #ffffff;
+  --switch-off: #747b83;
+  --switch-on: #318454;
+  --switch-knob: #ffffff;
+  --disabled-bg: #e4e8ec;
+  --disabled-ink: #59636f;
+  --disabled-border: #747b83;
+  /* Tier A = confirmed sensitive → terracotta. */
+  --a: #bd413f;
+  --action-a: #bd413f;
+  --on-action-a: #ffffff;
+  --a-ink: #963738;
+  --a-soft: #ffebe8;
+  --a-border: #e7b5b2;
+  /* Tier B = worth a double-check → amber. */
+  --b: #bd8f41;
+  --tier-b-badge: #95651b;
+  --on-tier-b-badge: #ffffff;
+  --b-ink: #765113;
+  --b-soft: #fbf0e0;
+  --b-track: #e6cfa8;
+  /* On-device AI → trustworthy blue. */
+  --ai: #236b42;
+  --ai-soft: #e0f5e6;
+  --ai-border: #88c8a0;
+  --ai-chip: #d8f0df;
+  --shadow: rgba(30, 37, 46, 0.38);
+
+  --sans: system-ui, 'Segoe UI', sans-serif;
+  --heading: 'Segoe UI', var(--sans);
+  --mono: ui-monospace, Consolas, monospace;
+
+  color-scheme: light;
+  font: 14px/1.45 var(--sans);
+  color: var(--ink);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+:root[data-theme='dark'] {
+  --bg: #101419;
+  --chrome: #0f1318;
+  --surface: #1a1e25;
+  --surface-2: #15191e;
+  --ink: #e8ebef;
+  --muted: #9399a0;
+  --faint: #8d939a;
+  --faint-2: #9399a0;
+  --line: #2d323a;
+  --line-2: #353b42;
+  --track: #2d323a;
+  --accent: #74c4e3;
+  --accent-2: #3aa5e3;
+  --accent-deep: #116d8a;
+  --action-accent: #116d8a;
+  --on-action-accent: #ffffff;
+  --accent-soft: #142832;
+  --accent-border: #235466;
+  --success: #49a46e;
+  --success-ink: #6cc68e;
+  --success-soft: #173523;
+  --success-border: #2b6242;
+  --chip-on-border: #2f754d;
+  --dot-off-bg: #20242b;
+  --dot-off-ink: #8d939a;
+  --control-border: #69727d;
+  --control-selected: #49a46e;
+  --on-control-selected: #101419;
+  --switch-off: #69727d;
+  --switch-on: #49a46e;
+  --switch-knob: #101419;
+  --disabled-bg: #20242b;
+  --disabled-ink: #aab0b7;
+  --disabled-border: #69727d;
+  --a: #d15c56;
+  --action-a: #d15c56;
+  --on-action-a: #101419;
+  --a-ink: #f08a84;
+  --a-soft: #442321;
+  --a-border: #7a3836;
+  --b: #ca9c4e;
+  --tier-b-badge: #ca9c4e;
+  --on-tier-b-badge: #101419;
+  --b-ink: #e0b968;
+  --b-soft: #392b16;
+  --b-track: #6b4c25;
+  --ai: #6cc68e;
+  --ai-soft: #173523;
+  --ai-border: #2b6242;
+  --ai-chip: #173523;
+  --shadow: rgba(0, 0, 0, 0.6);
+
+  color-scheme: dark;
+}
+
+/* User-selectable high contrast is independent of light/dark so it can be
+   toggled without losing the user's underlying theme preference. */
+:root[data-contrast='high'] {
+  --bg: #000000;
+  --chrome: #000000;
+  --surface: #000000;
+  --surface-2: #101010;
+  --ink: #ffffff;
+  --muted: #ffffff;
+  --faint: #e6e6e6;
+  --faint-2: #e6e6e6;
+  --line: #ffffff;
+  --line-2: #ffffff;
+  --track: #767676;
+  --accent: #ffff00;
+  --accent-2: #ffff00;
+  --accent-deep: #ffff00;
+  --action-accent: #ffff00;
+  --on-action-accent: #000000;
+  --accent-soft: #000000;
+  --accent-border: #ffff00;
+  --success: #ffff00;
+  --success-ink: #ffff00;
+  --success-soft: #000000;
+  --success-border: #ffff00;
+  --chip-on-border: #ffff00;
+  --dot-off-bg: #767676;
+  --dot-off-ink: #000000;
+  --control-border: #ffffff;
+  --control-selected: #ffff00;
+  --on-control-selected: #000000;
+  --switch-off: #767676;
+  --switch-on: #ffff00;
+  --switch-knob: #000000;
+  --disabled-bg: #000000;
+  --disabled-ink: #b3b3b3;
+  --disabled-border: #b3b3b3;
+  --a: #ff6b6b;
+  --action-a: #ff6b6b;
+  --on-action-a: #000000;
+  --a-ink: #ff8c8c;
+  --a-soft: #000000;
+  --a-border: #ff6b6b;
+  --b: #ffd166;
+  --tier-b-badge: #ffd166;
+  --on-tier-b-badge: #000000;
+  --b-ink: #ffd166;
+  --b-soft: #000000;
+  --b-track: #767676;
+  --ai: #ffff00;
+  --ai-soft: #000000;
+  --ai-border: #ffff00;
+  --ai-chip: #000000;
+  --shadow: rgba(255, 255, 255, 0.45);
+
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* App adds this class only while the user changes themes. Keeping the
+   transition opt-in avoids animating ordinary component state changes. */
+:root.theme-transition,
+:root.theme-transition *,
+:root.theme-transition *::before,
+:root.theme-transition *::after {
+  transition:
+    background-color 240ms ease,
+    border-color 240ms ease,
+    box-shadow 240ms ease,
+    color 240ms ease,
+    fill 240ms ease,
+    stroke 240ms ease !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root.theme-transition,
+  :root.theme-transition *,
+  :root.theme-transition *::before,
+  :root.theme-transition *::after {
+    transition: none !important;
+  }
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+}
+
+/* The app fills the whole viewport; scrolling happens inside .frame__body. */
+#root {
+  height: 100svh;
+}
+
+/* ---- Shared keyframes (Haven motion) ------------------------------------ */
+
+@keyframes hv-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.06);
+  }
+}
+
+@keyframes hv-ring {
+  0% {
+    transform: scale(0.7);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1.65);
+    opacity: 0;
+  }
+}
+
+/* Transform-only entrance (an opacity-0 start caused blank content in the
+   design prototype host — keep it that way). */
+@keyframes hv-in {
+  from {
+    transform: translateY(8px);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@keyframes hv-tick {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes hv-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

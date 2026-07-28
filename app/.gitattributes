@@ -1,0 +1,22 @@
+# Windows Script Host is happiest with CRLF.
+*.vbs text eol=crlf
+*.bat text eol=crlf
+
+# Reproducibility checks hash these source files as raw bytes. Keep their
+# checkout representation stable on Windows without changing unrelated assets.
+/pyproject.toml text eol=lf
+/tooling/eval/pyproject.toml text eol=lf
+/tooling/eval/generate_corpus.py text eol=lf
+/tooling/eval/calibration.py text eol=lf
+/tooling/eval/evidence_validation.py text eol=lf
+/tooling/eval/metrics.py text eol=lf
+/tooling/eval/report_rendering.py text eol=lf
+/tooling/eval/run_eval.py text eol=lf
+/packages/redactlens-core/pyproject.toml text eol=lf
+/packages/redactlens-core/redactlens_core/*.py text eol=lf
+/packages/redactlens-core/redactlens_core/**/*.py text eol=lf
+/packages/redactlens-core/redactlens_core/detectors/*.yaml text eol=lf
+
+# Generated evaluation evidence is canonical UTF-8 with LF line endings.
+/tooling/eval/report.md text eol=lf
+/tooling/eval/report.json text eol=lf

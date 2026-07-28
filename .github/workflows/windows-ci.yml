@@ -1,0 +1,67 @@
+name: Windows CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Complete quality baseline
+    runs-on: windows-latest
+    timeout-minutes: 45
+    env:
+      PIP_DISABLE_PIP_VERSION_CHECK: "1"
+      PYTHONHASHSEED: "0"
+      PYTHONUTF8: "1"
+    defaults:
+      run:
+        working-directory: app
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.12.11
+          cache: pip
+          cache-dependency-path: |
+            app/requirements-dev.txt
+            app/tooling/installer/constraints-windows.txt
+            app/packages/api/pyproject.toml
+            app/packages/cli/pyproject.toml
+            app/tooling/eval/pyproject.toml
+            app/packages/redactlens-core/pyproject.toml
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.12.0
+          cache: npm
+          cache-dependency-path: app/packages/frontend/package-lock.json
+
+      - name: Install Python dependencies
+        shell: pwsh
+        run: |
+          python -m pip install pip==26.1.2
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $env:PIP_BUILD_CONSTRAINT = "tooling/installer/constraints-windows.txt"
+          python -m pip install `
+            --constraint tooling/installer/constraints-windows.txt `
+            --requirement requirements-dev.txt
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Install frontend dependencies
+        run: npm ci --prefix packages/frontend
+
+      - name: Run complete verifier
+        run: python tooling/verify.py

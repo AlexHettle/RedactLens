@@ -1,0 +1,169 @@
+name: Windows Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Release version without a leading v (for example, 1.2.3)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  package:
+    name: Verify and package Windows x64
+    runs-on: windows-latest
+    timeout-minutes: 75
+    env:
+      INNO_SETUP_VERSION: 6.7.1
+      PIP_DISABLE_PIP_VERSION_CHECK: "1"
+      PYTHONHASHSEED: "0"
+      PYTHONUTF8: "1"
+    defaults:
+      run:
+        working-directory: app
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Resolve release version
+        id: release
+        shell: pwsh
+        env:
+          DISPATCH_VERSION: ${{ inputs.version }}
+          REF_NAME: ${{ github.ref_name }}
+          REF_TYPE: ${{ github.ref_type }}
+        run: |
+          if ($env:REF_TYPE -eq "tag") {
+            if (-not $env:REF_NAME.StartsWith("v")) {
+              throw "Release tags must start with v."
+            }
+            $version = $env:REF_NAME.Substring(1)
+          }
+          else {
+            $version = $env:DISPATCH_VERSION
+          }
+
+          if ($version -notmatch '^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$') {
+            throw "Version must be SemVer-like MAJOR.MINOR.PATCH[-PRERELEASE][+BUILD]."
+          }
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.12.11
+          cache: pip
+          cache-dependency-path: |
+            app/requirements-dev.txt
+            app/tooling/installer/constraints-windows.txt
+            app/tooling/installer/requirements-build.txt
+            app/packages/api/pyproject.toml
+            app/packages/cli/pyproject.toml
+            app/tooling/eval/pyproject.toml
+            app/packages/redactlens-core/pyproject.toml
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.12.0
+          cache: npm
+          cache-dependency-path: app/packages/frontend/package-lock.json
+
+      - name: Install Python build and test dependencies
+        shell: pwsh
+        run: |
+          python -m pip install pip==26.1.2
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $env:PIP_BUILD_CONSTRAINT = "tooling/installer/constraints-windows.txt"
+          python -m pip install `
+            --constraint tooling/installer/constraints-windows.txt `
+            --requirement requirements-dev.txt `
+            --requirement tooling/installer/requirements-build.txt
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Install frontend dependencies
+        run: npm ci --prefix packages/frontend
+
+      - name: Run complete verifier
+        run: python tooling/verify.py
+
+      - name: Install pinned Inno Setup
+        shell: pwsh
+        run: >-
+          choco upgrade innosetup
+          --version $env:INNO_SETUP_VERSION
+          --allow-downgrade
+          --yes
+          --no-progress
+
+      - name: Import required Windows code-signing certificate
+        id: signing
+        shell: pwsh
+        env:
+          WINDOWS_CODESIGN_PFX_BASE64: ${{ secrets.WINDOWS_CODESIGN_PFX_BASE64 }}
+          WINDOWS_CODESIGN_PFX_PASSWORD: ${{ secrets.WINDOWS_CODESIGN_PFX_PASSWORD }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:WINDOWS_CODESIGN_PFX_BASE64) -or
+              [string]::IsNullOrWhiteSpace($env:WINDOWS_CODESIGN_PFX_PASSWORD)) {
+            throw "Official Windows releases require WINDOWS_CODESIGN_PFX_BASE64 and WINDOWS_CODESIGN_PFX_PASSWORD."
+          }
+          $certificatePath = Join-Path $env:RUNNER_TEMP "redactlens-codesigning.pfx"
+          try {
+            [IO.File]::WriteAllBytes(
+              $certificatePath,
+              [Convert]::FromBase64String($env:WINDOWS_CODESIGN_PFX_BASE64)
+            )
+            $password = ConvertTo-SecureString $env:WINDOWS_CODESIGN_PFX_PASSWORD -AsPlainText -Force
+            $certificate = Import-PfxCertificate `
+              -FilePath $certificatePath `
+              -CertStoreLocation Cert:\CurrentUser\My `
+              -Password $password `
+              -Exportable:$false
+            if (-not $certificate -or -not $certificate.HasPrivateKey) {
+              throw "The imported code-signing certificate has no accessible private key."
+            }
+            "thumbprint=$($certificate.Thumbprint)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          }
+          finally {
+            Remove-Item -LiteralPath $certificatePath -Force -ErrorAction SilentlyContinue
+          }
+
+      - name: Build portable bundle and installer
+        shell: pwsh
+        run: |
+          $iscc = (Get-Command "ISCC.exe" -ErrorAction Stop).Source
+          .\tooling\installer\build_windows.ps1 `
+            -Version "${{ steps.release.outputs.version }}" `
+            -IsccPath $iscc `
+            -CodeSigningThumbprint "${{ steps.signing.outputs.thumbprint }}" `
+            -SkipFrontendBuild
+
+      - name: Smoke-test silent install and uninstall
+        shell: pwsh
+        run: >-
+          .\tooling\installer\smoke_test_installer.ps1
+          -InstallerPath ".\.artifacts\release\RedactLens-Setup-${{ steps.release.outputs.version }}-windows-x64.exe"
+
+      - name: Remove imported code-signing certificate
+        if: always() && steps.signing.outputs.thumbprint != ''
+        shell: pwsh
+        run: Remove-Item -LiteralPath "Cert:\CurrentUser\My\${{ steps.signing.outputs.thumbprint }}" -Force
+
+      - name: Upload Windows release artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: RedactLens-${{ steps.release.outputs.version }}-windows-x64
+          path: app/.artifacts/release/*
+          if-no-files-found: error
+          retention-days: 30

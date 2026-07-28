@@ -1,0 +1,16 @@
+id: credit_card
+category: financial
+description: "Credit or debit card number"
+risk_lesson: "A card number can be used for fraudulent purchases, especially combined with an expiry date or CVV found nearby."
+method: regex
+pattern: '\b(?:\d[ -]?){12,18}\d\b'
+base_confidence: 0.55
+specificity: 90
+context:
+  boosters:
+    - { validator: luhn, weight: +0.35 }
+    - { pattern: '(?i)card|visa|mastercard|amex|discover', weight: +0.05 }
+  suppressors:
+    - { validator: luhn, invert: true, weight: -0.40 }
+    - { pattern: '(?i)\b(examples?|tests?|samples?|fakes?)\b', weight: -0.40 }
+    - { in_path: '(?i)\b(test|fixtures?|samples?)\b', weight: -0.30 }

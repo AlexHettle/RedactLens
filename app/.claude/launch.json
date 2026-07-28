@@ -1,0 +1,20 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "api",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": [
+        "/c",
+        "if not defined REDACTLENS_OLLAMA_MODEL set REDACTLENS_OLLAMA_MODEL=qwen3-coder:30b&& ..\\.venv\\Scripts\\python.exe -m redactlens_api"
+      ],
+      "port": 8000
+    },
+    {
+      "name": "frontend",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--prefix", "packages/frontend"],
+      "port": 5173
+    }
+  ]
+}

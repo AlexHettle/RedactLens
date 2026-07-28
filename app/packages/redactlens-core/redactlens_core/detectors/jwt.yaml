@@ -1,0 +1,16 @@
+id: jwt
+category: credential
+description: "JSON Web Token (JWT)"
+risk_lesson: "A JWT often grants an authenticated session directly; anyone with the token can act as the logged-in user until it expires or is revoked."
+method: regex
+pattern: '\bey[A-Za-z0-9_-]{10,8192}\.[A-Za-z0-9_-]{10,8192}\.[A-Za-z0-9_-]{10,8192}\b'
+max_match_length: 24581
+base_confidence: 0.90
+specificity: 100
+suppresses: [high_entropy_secret]
+context:
+  boosters:
+    - { pattern: '(?i)token|jwt|bearer|authorization', weight: +0.05 }
+  suppressors:
+    - { pattern: '(?i)\b(examples?|tests?|samples?|fakes?)\b', weight: -0.40 }
+    - { in_path: '(?i)\b(test|fixtures?|samples?)\b', weight: -0.30 }

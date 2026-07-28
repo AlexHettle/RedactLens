@@ -1,0 +1,15 @@
+id: email
+category: personal_id
+description: "Email address"
+risk_lesson: "An email address can be used for phishing or correlated with other leaked data to build a fuller profile of you."
+method: regex
+pattern: '\b[A-Za-z0-9._%+-]{1,64}@[A-Za-z0-9.-]{1,253}\.[A-Za-z]{2,63}\b'
+max_match_length: 382
+base_confidence: 0.55
+specificity: 50
+context:
+  boosters:
+    - { pattern: '(?i)contact|email|reach (?:me|us)|personal', weight: +0.10 }
+  suppressors:
+    - { pattern: '(?i)\b(examples?|tests?|samples?|fakes?)\b|noreply|no-reply|donotreply', weight: -0.40 }
+    - { in_path: '(?i)\b(test|fixtures?|samples?)\b', weight: -0.30 }
