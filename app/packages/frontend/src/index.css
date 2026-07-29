@@ -9,6 +9,7 @@
   --surface: #ffffff;
   --surface-2: #eff2f5;
   --ink: #1e252e;
+  --redaction-mark: #111418;
   --muted: #626b76;
   --faint: #66707b;
   --faint-2: #626b76;
@@ -78,6 +79,7 @@
   --surface: #1a1e25;
   --surface-2: #15191e;
   --ink: #e8ebef;
+  --redaction-mark: #050607;
   --muted: #9399a0;
   --faint: #8d939a;
   --faint-2: #9399a0;
@@ -136,6 +138,7 @@
   --surface: #000000;
   --surface-2: #101010;
   --ink: #ffffff;
+  --redaction-mark: CanvasText;
   --muted: #ffffff;
   --faint: #e6e6e6;
   --faint-2: #e6e6e6;

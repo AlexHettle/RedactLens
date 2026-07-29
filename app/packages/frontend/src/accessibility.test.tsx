@@ -352,12 +352,14 @@ describe('automated accessibility checks', () => {
     expect(desktopAside).toContain('justify-content: flex-end')
   })
 
-  it('uses a deliberate, readable strike-through for ignored values', () => {
-    const ignoredValue = ruleBlock('.finding--ignored .finding__value')
+  it('uses a thick sharpie mark only for values included in the redaction plan', () => {
+    const redactedValue = ruleBlock('.finding__value--redacted')
 
-    expect(ignoredValue).toContain('text-decoration-line: line-through')
-    expect(ignoredValue).toContain('text-decoration-thickness: 2px')
-    expect(ignoredValue).toContain('text-decoration-skip-ink: none')
+    expect(redactedValue).toContain('text-decoration-line: line-through')
+    expect(redactedValue).toContain('text-decoration-color: var(--redaction-mark)')
+    expect(redactedValue).toContain('text-decoration-thickness: 0.52em')
+    expect(redactedValue).toContain('text-decoration-skip-ink: none')
+    expect(appCss).not.toContain('.finding--ignored .finding__value {')
     expect(ruleBlock('.finding')).not.toContain('background-color 180ms')
     expect(ruleBlock('.finding')).not.toContain('border-color 180ms')
   })

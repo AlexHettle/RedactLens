@@ -1967,10 +1967,10 @@ button {
   white-space: pre-wrap;
 }
 
-.finding--ignored .finding__value {
+.finding__value--redacted {
   text-decoration-line: line-through;
-  text-decoration-color: var(--faint);
-  text-decoration-thickness: 2px;
+  text-decoration-color: var(--redaction-mark);
+  text-decoration-thickness: 0.52em;
   text-decoration-skip-ink: none;
 }
 

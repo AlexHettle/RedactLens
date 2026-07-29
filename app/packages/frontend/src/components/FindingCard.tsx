@@ -75,7 +75,7 @@ export default function FindingCard({
         <details className="finding__details">
           <summary>
             <span
-              className={`finding__value${revealedValue !== undefined ? ' finding__value--revealed' : ''}`}
+              className={`finding__value${status === 'included' ? ' finding__value--redacted' : ''}${revealedValue !== undefined ? ' finding__value--revealed' : ''}`}
             >
               {revealedValue ?? maskedPreview}
             </span>

@@ -14,10 +14,11 @@
 </p>
 
 <p align="center">
-  <img alt="Platform: Windows 10 and Windows 11" src="https://img.shields.io/badge/platform-Windows%2010%20%7C%20Windows%2011-2E7D52?style=flat-square">
-  <img alt="Privacy: local first" src="https://img.shields.io/badge/privacy-local--first-2E7D52?style=flat-square">
-  <img alt="AI: Ollama optional" src="https://img.shields.io/badge/AI-Ollama%20optional-2E7D52?style=flat-square">
-  <img alt="Tests: 1,079 automated" src="https://img.shields.io/badge/tests-1%2C079%20automated-2E7D52?style=flat-square">
+  <img alt="Platform: Windows 10 and Windows 11" src="https://img.shields.io/badge/Platform-Windows%2010%2F11-0078D4?style=flat&logo=windows11&logoColor=white">&nbsp;<img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-79C000?style=flat&logo=opensourceinitiative&logoColor=white">
+  <br>
+  <img alt="Privacy: local first" src="https://img.shields.io/badge/Privacy-Local--first-2E7D52?style=flat">&nbsp;<img alt="Status: active development" src="https://img.shields.io/badge/Status-Active%20development-44CC11?style=flat">
+  <br>
+  <img alt="AI: Ollama optional" src="https://img.shields.io/badge/AI-Ollama%20optional-C45A24?style=flat&logo=ollama&logoColor=white">&nbsp;<img alt="Tests: 1,079 automated" src="https://img.shields.io/badge/Tests-1%2C079%20automated-2E7D52?style=flat&logo=pytest&logoColor=white">
 </p>
 
 <p align="center">

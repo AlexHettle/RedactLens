@@ -877,6 +877,7 @@ describe('ResultsScreen', () => {
     await user.click(screen.getByRole('button', { name: /Include finding .* in redaction plan/i }))
 
     expect(await screen.findByText('Included')).toBeInTheDocument()
+    expect(screen.getByText('12*******89')).toHaveClass('finding__value--redacted')
     expect(client.putRemediationPlan).toHaveBeenCalledWith('scan-1', ['f1'], [], 0)
     expect(client.postGenerateRemediation).not.toHaveBeenCalled()
   })
@@ -897,6 +898,7 @@ describe('ResultsScreen', () => {
     const cardFocus = vi.spyOn(findingCard, 'focus')
     await user.click(screen.getByRole('button', { name: IGNORE_ACTION_NAME }))
     expect(await screen.findByText('Ignored')).toBeInTheDocument()
+    expect(within(findingCard).getByText('12*******89')).not.toHaveClass('finding__value--redacted')
     expect(findingCard).toHaveFocus()
     expect(cardFocus).toHaveBeenCalledTimes(1)
     expect(cardFocus).toHaveBeenCalledWith({ preventScroll: true })
