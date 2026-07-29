@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import struct
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import Mock
@@ -16,6 +17,10 @@ from tooling.installer.validate_bundle import (
 
 ROOT = Path(__file__).resolve().parents[1]
 REPOSITORY_ROOT = ROOT.parent
+
+
+def _bitmap_dimensions(path: Path) -> tuple[int, int]:
+    return struct.unpack_from("<ii", path.read_bytes(), 18)
 
 
 @pytest.mark.parametrize(
@@ -321,6 +326,8 @@ def test_release_uses_redactlens_brand_icon() -> None:
     assert splash_bitmap.is_file() and splash_bitmap.stat().st_size > 0
     assert dark_splash_image.is_file() and dark_splash_image.stat().st_size > 0
     assert dark_splash_bitmap.is_file() and dark_splash_bitmap.stat().st_size > 0
+    assert _bitmap_dimensions(splash_bitmap) == (1200, 720)
+    assert _bitmap_dimensions(dark_splash_bitmap) == (1200, 720)
     assert 'assets" / "branding" / "redactlens.ico"' in pyinstaller_spec
     assert "SetupIconFile=..\\..\\assets\\branding\\redactlens.ico" in inno_setup
     assert "WizardImageFile=..\\..\\assets\\branding\\redactlens-installer-wizard.png" in inno_setup

@@ -10,7 +10,9 @@ from PIL import Image, ImageDraw, ImageFont
 
 CANVAS_SIZE = 1024
 WIZARD_IMAGE_SIZE = (534, 1022)
-SPLASH_IMAGE_SIZE = (600, 360)
+SPLASH_LOGICAL_SIZE = (600, 360)
+SPLASH_SCALE = 2
+SPLASH_IMAGE_SIZE = tuple(dimension * SPLASH_SCALE for dimension in SPLASH_LOGICAL_SIZE)
 BRAND_GREEN = (53, 111, 78, 255)
 LIGHT_BG = (244, 247, 250, 255)
 INK = (30, 37, 46, 255)
@@ -130,8 +132,13 @@ def _font(size: int, *, bold: bool = False) -> ImageFont.FreeTypeFont | ImageFon
 
 
 def render_splash_image(icon: Image.Image, *, dark: bool = False) -> Image.Image:
-    """Render the immediate native startup card in the app's Haven visual style."""
+    """Render a high-DPI startup card at the app's 600x360 logical size."""
+    scale = SPLASH_SCALE
     width, height = SPLASH_IMAGE_SIZE
+
+    def scaled(values: tuple[int, ...]) -> tuple[int, ...]:
+        return tuple(value * scale for value in values)
+
     background = DARK_BG if dark else LIGHT_BG
     ink = DARK_INK if dark else INK
     muted = DARK_MUTED if dark else MUTED
@@ -162,30 +169,57 @@ def render_splash_image(icon: Image.Image, *, dark: bool = False) -> Image.Image
     # Quiet depth and geometry echo the app's warm surfaces without relying
     # on transparency, which keeps PyInstaller's Windows splash edges clean.
     for radius, color in halo_colors:
+        radius *= scale
         draw.ellipse((width - radius, -radius // 2, width + radius, radius * 3 // 2), fill=color)
-    mark_size = 126
+    mark_size = 126 * scale
     mark = icon.resize((mark_size, mark_size), Image.Resampling.LANCZOS)
-    image.alpha_composite(mark, (47, 70))
+    image.alpha_composite(mark, scaled((47, 70)))
 
-    draw.text((202, 76), "RedactLens", font=_font(38, bold=True), fill=ink)
+    draw.text(scaled((202, 76)), "RedactLens", font=_font(38 * scale, bold=True), fill=ink)
     draw.text(
-        (204, 129),
+        scaled((204, 129)),
         "Finds sensitive data before you share it.",
-        font=_font(16),
+        font=_font(16 * scale),
         fill=muted,
     )
 
-    pill = (203, 174, 362, 210)
-    draw.rounded_rectangle(pill, radius=18, fill=success_soft, outline=success_border, width=1)
-    draw.ellipse((219, 187, 227, 195), fill=success)
-    draw.text((237, 183), "On-device privacy", font=_font(13, bold=True), fill=success_ink)
+    pill = scaled((203, 174, 362, 210))
+    draw.rounded_rectangle(
+        pill,
+        radius=18 * scale,
+        fill=success_soft,
+        outline=success_border,
+        width=scale,
+    )
+    draw.ellipse(scaled((219, 187, 227, 195)), fill=success)
+    draw.text(
+        scaled((237, 183)),
+        "On-device privacy",
+        font=_font(13 * scale, bold=True),
+        fill=success_ink,
+    )
 
-    draw.line((39, 273, width - 39, 273), fill=divider, width=1)
-    draw.rounded_rectangle((0, 288, width, height + 18), radius=18, fill=accent_soft)
-    draw.rectangle((0, 0, 8, height), fill=brand)
-    draw.ellipse((45, 314, 59, 328), outline=link, width=3)
-    draw.arc((49, 318, 55, 324), start=300, end=90, fill=accent_soft, width=3)
-    draw.text((456, 315), "LOCAL  •  PRIVATE", font=_font(10, bold=True), fill=muted)
+    draw.line(scaled((39, 273, 561, 273)), fill=divider, width=scale)
+    draw.rounded_rectangle(
+        scaled((0, 288, 600, 378)),
+        radius=18 * scale,
+        fill=accent_soft,
+    )
+    draw.rectangle(scaled((0, 0, 8, 360)), fill=brand)
+    draw.ellipse(scaled((45, 314, 59, 328)), outline=link, width=3 * scale)
+    draw.arc(
+        scaled((49, 318, 55, 324)),
+        start=300,
+        end=90,
+        fill=accent_soft,
+        width=3 * scale,
+    )
+    draw.text(
+        scaled((456, 315)),
+        "LOCAL  •  PRIVATE",
+        font=_font(10 * scale, bold=True),
+        fill=muted,
+    )
     return image
 
 
