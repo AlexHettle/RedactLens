@@ -408,14 +408,21 @@ details.
 ### Architecture
 
 ```mermaid
-flowchart LR
-    UI["React + TypeScript UI"] --> API["FastAPI service"]
-    API --> CORE["Python scan core"]
-    RULES["Built-in and custom rules"] --> CORE
-    CORE <--> AI["Optional local Ollama"]
-    CORE --> RESULTS["Masked findings and trusted offsets"]
-    RESULTS --> WRITE["Verified redaction"]
-    WRITE --> FILES["Copies or original files"]
+flowchart TB
+    UI["React UI sends scan settings"]
+    API["FastAPI validates the request<br/>and starts a private scan session"]
+    CORE["Scan core discovers, extracts,<br/>detects, scores, and consolidates"]
+    SESSION["Private API session retains<br/>raw values, trusted offsets, and fingerprints"]
+    RESULTS["UI receives privacy-safe findings<br/>masked by default"]
+    PLAN["User builds a redaction plan<br/>with opaque finding IDs"]
+    WRITE["API resolves selected IDs,<br/>verifies sources and redactions,<br/>then checks each output"]
+    OUTPUT["Atomically create redacted copies<br/>or explicitly replace the originals"]
+
+    UI --> API --> CORE --> SESSION --> RESULTS --> PLAN --> WRITE --> OUTPUT
+
+    FILES["Selected local files"] --> CORE
+    RULES["Built-in rules<br/>and exact-value targets"] --> CORE
+    CORE <-->|Optional local prompts and verdicts| AI["Local Ollama"]
 ```
 
 ```text
