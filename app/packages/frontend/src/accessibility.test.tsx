@@ -317,6 +317,19 @@ describe('automated accessibility checks', () => {
     expect(reducedMotion).toContain('transition: none')
   })
 
+  it('animates the AI switch while honoring reduced motion', () => {
+    const track = ruleBlock('.switch')
+    const knob = ruleBlock('.switch__knob')
+    const enabledKnob = ruleBlock('.switch--on .switch__knob')
+    const reducedMotion = appCss.slice(appCss.indexOf('@media (prefers-reduced-motion: reduce)'))
+
+    expect(track).toContain('transition: background-color')
+    expect(knob).toContain('transition: transform')
+    expect(enabledKnob).toContain('transform: translateX(18px)')
+    expect(reducedMotion).toContain('.switch,\n  .switch__knob')
+    expect(reducedMotion).toContain('transition: none')
+  })
+
   it('reserves scrollbar space so disclosures do not change the page width', () => {
     const frameBody = ruleBlock('.frame__body')
     expect(frameBody).toContain('overflow-y: scroll')

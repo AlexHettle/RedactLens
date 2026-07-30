@@ -707,11 +707,11 @@ button {
   display: flex;
   background: var(--switch-off);
   justify-content: flex-start;
+  transition: background-color 180ms ease;
 }
 
 .switch--on {
   background: var(--switch-on);
-  justify-content: flex-end;
 }
 
 .switch__knob {
@@ -720,6 +720,12 @@ button {
   border-radius: 50%;
   background: var(--switch-knob);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  transform: translateX(0);
+  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.switch--on .switch__knob {
+  transform: translateX(18px);
 }
 
 .ai-setup {
@@ -2857,6 +2863,10 @@ button {
   .finding__select input,
   .scan-options__check input,
   .replacement-warning input[type='checkbox'] {
+    transition: none;
+  }
+  .switch,
+  .switch__knob {
     transition: none;
   }
   .scan-options__content,
