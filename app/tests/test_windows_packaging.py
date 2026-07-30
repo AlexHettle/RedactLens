@@ -7,6 +7,8 @@ from unittest.mock import Mock
 
 import launch
 import pytest
+from PIL import Image
+from tooling.installer.generate_icon_assets import ACCENT_SOFT, DARK_ACCENT_SOFT
 from tooling.installer.generate_version_info import parse_version, render_version_info
 from tooling.installer.validate_bundle import (
     GENERATED_LEGAL_DOCUMENT,
@@ -336,6 +338,17 @@ def test_release_uses_redactlens_brand_icon() -> None:
     assert 'assets" / "branding" / "redactlens-splash-dark.bmp"' in pyinstaller_spec
     assert 'IconFilename: "{app}\\RedactLens.ico"' in inno_setup
     assert 'AppUserModelID: "RedactLens.Desktop"' in inno_setup
+
+
+def test_splash_footer_has_square_corners() -> None:
+    splash_assets = (
+        ("redactlens-splash.png", ACCENT_SOFT),
+        ("redactlens-splash-dark.png", DARK_ACCENT_SOFT),
+    )
+
+    for filename, footer_color in splash_assets:
+        with Image.open(ROOT / "assets" / "branding" / filename) as image:
+            assert image.convert("RGBA").getpixel((image.width - 1, 288 * 2)) == footer_color
 
 
 def test_installer_opens_with_a_welcome_page() -> None:

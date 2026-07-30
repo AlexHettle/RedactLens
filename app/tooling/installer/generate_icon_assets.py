@@ -200,11 +200,7 @@ def render_splash_image(icon: Image.Image, *, dark: bool = False) -> Image.Image
     )
 
     draw.line(scaled((39, 273, 561, 273)), fill=divider, width=scale)
-    draw.rounded_rectangle(
-        scaled((0, 288, 600, 378)),
-        radius=18 * scale,
-        fill=accent_soft,
-    )
+    draw.rectangle(scaled((0, 288, 600, 378)), fill=accent_soft)
     draw.rectangle(scaled((0, 0, 8, 360)), fill=brand)
     draw.ellipse(scaled((45, 314, 59, 328)), outline=link, width=3 * scale)
     draw.arc(
