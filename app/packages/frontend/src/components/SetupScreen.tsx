@@ -482,6 +482,22 @@ export default function SetupScreen({ onSubmit, onRequestChange, initial }: Setu
     setHealthCheckCycle((cycle) => cycle + 1)
   }
 
+  function resetAdvancedScanOptions() {
+    setOllamaModel(DEFAULT_OLLAMA_MODEL)
+    setMaxFileSizeMb(DEFAULT_SCAN_OPTIONS.max_file_size / 1_000_000)
+    setMaxStructuredFileSizeMb(DEFAULT_SCAN_OPTIONS.max_structured_file_size / 1_000_000)
+    setIgnoredDirectories(DEFAULT_SCAN_OPTIONS.ignored_directories.join(', '))
+    setIncludedExtensions(DEFAULT_SCAN_OPTIONS.included_extensions.join(', '))
+    setExcludedExtensions(DEFAULT_SCAN_OPTIONS.excluded_extensions.join(', '))
+    setArchiveDepth(DEFAULT_SCAN_OPTIONS.archive_depth)
+    setAiTimeoutSeconds(DEFAULT_SCAN_OPTIONS.ai_timeout_seconds)
+    setMaxWorkers(DEFAULT_SCAN_OPTIONS.max_workers)
+    setDocumentWorkers(DEFAULT_SCAN_OPTIONS.document_workers)
+    setChunkSizeKb(DEFAULT_SCAN_OPTIONS.chunk_size / 1024)
+    setUseRedactLensignore(DEFAULT_SCAN_OPTIONS.use_redactlensignore)
+    onRequestChange?.()
+  }
+
   function toggleCategory(category: string) {
     setSelectedCategories((prev) => {
       const next = new Set(prev)
@@ -904,12 +920,21 @@ export default function SetupScreen({ onSubmit, onRequestChange, initial }: Setu
             inert={!advancedOptionsOpen}
           >
             <div className="scan-options__content-inner">
-              <p className="scan-options__intro">
-                Choose an installed local AI model, bound resource use, and narrow the files
-                included in this scan. Comma-separate individual directory names or extensions. Each
-                list accepts up to 256 entries; directory names can be 255 characters and extensions
-                32.
-              </p>
+              <div className="scan-options__intro-row">
+                <p className="scan-options__intro">
+                  Choose an installed local AI model, bound resource use, and narrow the files
+                  included in this scan. Comma-separate individual directory names or extensions.
+                  Each list accepts up to 256 entries; directory names can be 255 characters and
+                  extensions 32.
+                </p>
+                <button
+                  type="button"
+                  className="scan-options__reset"
+                  onClick={resetAdvancedScanOptions}
+                >
+                  Reset to defaults
+                </button>
+              </div>
               <div className="scan-options__model">
                 <label htmlFor="ollama-model">Local AI model</label>
                 <div className="scan-options__model-row">

@@ -200,6 +200,102 @@ describe('SetupScreen', () => {
     )
   })
 
+  it('resets every advanced scan option to the authoritative defaults', async () => {
+    vi.mocked(client.getDetectors).mockResolvedValue(DETECTORS)
+    vi.mocked(client.getHealth).mockResolvedValue({
+      status: 'ok',
+      ollama_available: true,
+      ollama_status: 'ready',
+      ollama_model: 'qwen3-coder:30b',
+      ollama_models: [
+        { name: 'qwen3-coder:30b', size_bytes: 18_600_000_000 },
+        { name: 'llama3.2:3b', size_bytes: 2_100_000_000 },
+      ],
+    })
+    const onSubmit = vi.fn()
+    const onRequestChange = vi.fn()
+    const user = userEvent.setup()
+
+    render(
+      <SetupScreen
+        onSubmit={onSubmit}
+        onRequestChange={onRequestChange}
+        initial={{
+          paths: ['/restored/path'],
+          categories: ['credential'],
+          user_targets: [],
+          use_llm: false,
+          ollama_model: 'llama3.2:3b',
+          options: {
+            max_file_size: 75_000_000,
+            max_structured_file_size: 25_000_000,
+            ignored_directories: ['.git', 'vendor'],
+            included_extensions: ['.txt'],
+            excluded_extensions: ['.map'],
+            archive_depth: 3,
+            ai_timeout_seconds: 12.5,
+            max_workers: 3,
+            document_workers: 2,
+            chunk_size: 131_072,
+            use_redactlensignore: false,
+          },
+        }}
+      />,
+    )
+
+    await screen.findByRole('checkbox', { name: /Credentials/i })
+    await user.click(screen.getByRole('button', { name: 'Advanced scan options' }))
+    onRequestChange.mockClear()
+    await user.click(screen.getByRole('button', { name: 'Reset to defaults' }))
+
+    expect(screen.getByRole('combobox', { name: 'Local AI model' })).toHaveValue('qwen3-coder:30b')
+    expect(screen.getByLabelText(/Maximum file size/i)).toHaveValue(100)
+    expect(screen.getByLabelText(/Structured file limit/i)).toHaveValue(50)
+    expect(screen.getByLabelText(/Ignored directory names/i)).toHaveValue(
+      '.git, .venv, __pycache__, build, dist, node_modules, venv',
+    )
+    expect(screen.getByLabelText(/Include only extensions/i)).toHaveValue('')
+    expect(screen.getByLabelText(/Excluded extensions/i)).toHaveValue('')
+    expect(screen.getByLabelText(/Archive depth/i)).toHaveValue(2)
+    expect(screen.getByLabelText(/Local AI timeout/i)).toHaveValue(60)
+    expect(screen.getByLabelText(/^File workers$/i)).toHaveValue(4)
+    expect(screen.getByLabelText(/Structured-document workers/i)).toHaveValue(1)
+    expect(screen.getByLabelText(/Text chunk size/i)).toHaveValue(1024)
+    expect(screen.getByRole('checkbox', { name: /Apply root-level/i })).toBeChecked()
+    expect(onRequestChange).toHaveBeenCalledTimes(1)
+    await waitFor(() =>
+      expect(localStorage.getItem('redactlens-ollama-model')).toBe('qwen3-coder:30b'),
+    )
+
+    await user.click(screen.getByRole('button', { name: /Scan this location/i }))
+    expect(onSubmit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        ollama_model: 'qwen3-coder:30b',
+        options: {
+          max_file_size: 100_000_000,
+          max_structured_file_size: 50_000_000,
+          ignored_directories: [
+            '.git',
+            '.venv',
+            '__pycache__',
+            'build',
+            'dist',
+            'node_modules',
+            'venv',
+          ],
+          included_extensions: [],
+          excluded_extensions: [],
+          archive_depth: 2,
+          ai_timeout_seconds: 60,
+          max_workers: 4,
+          document_workers: 1,
+          chunk_size: 1_048_576,
+          use_redactlensignore: true,
+        },
+      }),
+    )
+  })
+
   it('opens and closes advanced scan options as an accessible animated disclosure', async () => {
     vi.mocked(client.getDetectors).mockResolvedValue(DETECTORS)
     vi.mocked(client.getHealth).mockResolvedValue({ status: 'ok', ollama_available: false })

@@ -297,11 +297,42 @@ button {
   width: 100%;
 }
 
-.scan-options__intro {
+.scan-options__intro-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
   margin: 10px 0 14px;
+}
+
+.scan-options__intro {
+  flex: 1 1 auto;
+  margin: 0;
   color: var(--faint-2);
   font-size: 12px;
   line-height: 1.45;
+}
+
+.scan-options__reset {
+  flex: none;
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--control-border);
+  border-radius: 8px;
+  background: var(--surface-2);
+  color: var(--accent);
+  font-size: 11.5px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.scan-options__reset:hover {
+  border-color: var(--accent-2);
+  background: var(--accent-soft);
+}
+
+.scan-options__reset:focus-visible {
+  border-color: var(--accent-2);
 }
 
 .scan-options__grid {
@@ -423,6 +454,10 @@ button {
 }
 
 @media (max-width: 480px) {
+  .scan-options__intro-row {
+    flex-direction: column;
+  }
+
   .scan-options__model-row {
     grid-template-columns: minmax(0, 1fr);
   }
