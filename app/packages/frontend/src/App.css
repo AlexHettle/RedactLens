@@ -292,8 +292,13 @@ button {
 }
 
 .scan-options__content-inner {
+  box-sizing: border-box;
   min-height: 0;
   overflow: hidden;
+  /* Keep the global 2px focus outline and its 2px offset inside the
+     disclosure's horizontal and bottom animation clips. */
+  padding-block-end: 4px;
+  padding-inline: 4px;
   width: 100%;
 }
 
