@@ -480,6 +480,11 @@ describe('SetupScreen', () => {
 
     const toggle = await screen.findByRole('switch', { name: /On-device AI/i })
     expect(toggle).toBeDisabled()
+    const liveStatus = screen
+      .getAllByText(/Ollama isn’t running/i)
+      .find((element) => element.getAttribute('aria-live') === 'polite')
+    expect(liveStatus).toHaveClass('visually-hidden')
+    expect(liveStatus).toHaveAttribute('aria-atomic', 'true')
   })
 
   it('shows official install steps when Ollama is not running', async () => {
@@ -501,6 +506,9 @@ describe('SetupScreen', () => {
     expect(screen.getByText('ollama pull qwen3-coder:30b')).toBeInTheDocument()
     expect(screen.getByText(/configured model download is about 19 GB/i)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Check again' })).toBeEnabled()
+    for (const browserHint of screen.getAllByText(/opens in your browser/i)) {
+      expect(browserHint).toHaveClass('visually-hidden')
+    }
   })
 
   it('automatically detects Ollama when it finishes starting with Windows', async () => {
@@ -610,11 +618,16 @@ describe('SetupScreen', () => {
     expect(
       screen.getByText(/cloud models.*renamed cloud references are excluded/i),
     ).toBeInTheDocument()
+    const localAiStatusMessages = screen.getAllByText(
+      /source excerpts are sent only to your local Ollama service; RedactLens does not upload them/i,
+    )
+    expect(localAiStatusMessages).toHaveLength(2)
     expect(
-      screen.getAllByText(
-        /source excerpts are sent only to your local Ollama service; RedactLens does not upload them/i,
-      ),
-    ).toHaveLength(2)
+      localAiStatusMessages.filter((element) => element.matches('.ai-card__desc')),
+    ).toHaveLength(1)
+    expect(
+      localAiStatusMessages.filter((element) => element.matches('.visually-hidden[aria-live]')),
+    ).toHaveLength(1)
 
     await user.selectOptions(modelSelect, 'llama3.2:3b')
     await user.click(screen.getByRole('switch', { name: /On-device AI/i }))

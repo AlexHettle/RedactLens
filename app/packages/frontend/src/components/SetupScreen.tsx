@@ -712,7 +712,7 @@ export default function SetupScreen({ onSubmit, onRequestChange, initial }: Setu
                 <span className="switch__knob" />
               </span>
             </button>
-            <span className="sr-only" aria-live="polite">
+            <span className="visually-hidden" aria-live="polite" aria-atomic="true">
               {aiHint}
             </span>
             {showOllamaSetup && (
@@ -750,7 +750,7 @@ export default function SetupScreen({ onSubmit, onRequestChange, initial }: Setu
                     <li>
                       <a href={OLLAMA_DOWNLOAD_URL} target="_blank" rel="noreferrer">
                         Download Ollama for Windows
-                        <span className="sr-only"> (opens in your browser)</span>
+                        <span className="visually-hidden"> (opens in your browser)</span>
                       </a>{' '}
                       and run the installer.
                     </li>
@@ -767,7 +767,7 @@ export default function SetupScreen({ onSubmit, onRequestChange, initial }: Setu
                   {showRecommendedModelSize && (
                     <a href={OLLAMA_MODEL_URL} target="_blank" rel="noreferrer">
                       View model details
-                      <span className="sr-only"> (opens in your browser)</span>
+                      <span className="visually-hidden"> (opens in your browser)</span>
                     </a>
                   )}
                 </p>
