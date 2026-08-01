@@ -245,6 +245,13 @@ describe('SetupScreen', () => {
 
     await screen.findByRole('checkbox', { name: /Credentials/i })
     await user.click(screen.getByRole('button', { name: 'Advanced scan options' }))
+    expect(screen.getByRole('button', { name: 'Add' })).toHaveClass('setup-secondary-button')
+    expect(screen.getByRole('button', { name: 'Reset to defaults' })).toHaveClass(
+      'setup-secondary-button',
+    )
+    expect(screen.getByRole('button', { name: 'Refresh models' })).toHaveClass(
+      'setup-secondary-button',
+    )
     onRequestChange.mockClear()
     await user.click(screen.getByRole('button', { name: 'Reset to defaults' }))
 

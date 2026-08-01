@@ -867,7 +867,7 @@ export default function SetupScreen({ onSubmit, onRequestChange, initial }: Setu
                 </div>
                 <button
                   type="button"
-                  className="btn-add"
+                  className="setup-secondary-button btn-add"
                   onClick={addTarget}
                   disabled={Boolean(targetDraftError) || targetLimitReached}
                   aria-disabled={
@@ -929,7 +929,7 @@ export default function SetupScreen({ onSubmit, onRequestChange, initial }: Setu
                 </p>
                 <button
                   type="button"
-                  className="scan-options__reset"
+                  className="setup-secondary-button scan-options__reset"
                   onClick={resetAdvancedScanOptions}
                 >
                   Reset to defaults
@@ -968,7 +968,12 @@ export default function SetupScreen({ onSubmit, onRequestChange, initial }: Setu
                       </option>
                     ))}
                   </select>
-                  <button type="button" onClick={checkOllamaAgain} disabled={healthCheckPending}>
+                  <button
+                    type="button"
+                    className="setup-secondary-button"
+                    onClick={checkOllamaAgain}
+                    disabled={healthCheckPending}
+                  >
                     {healthCheckPending ? 'Refreshing…' : 'Refresh models'}
                   </button>
                 </div>

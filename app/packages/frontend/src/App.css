@@ -237,6 +237,42 @@ button {
   margin: -4px 0 11px;
 }
 
+/* Compact secondary actions on the setup screen share one visual language. */
+.setup-secondary-button {
+  box-sizing: border-box;
+  height: 38px;
+  min-height: 38px;
+  padding: 0 12px;
+  border: 1px solid var(--accent-border);
+  border-radius: 9px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 12.5px;
+  font-weight: 650;
+  cursor: pointer;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease;
+}
+
+.setup-secondary-button:hover:not(:disabled):not([aria-disabled='true']) {
+  border-color: var(--action-accent);
+  background: var(--action-accent);
+  color: var(--on-action-accent);
+}
+
+.setup-secondary-button:focus-visible {
+  border-color: var(--accent);
+}
+
+.setup-secondary-button:disabled {
+  border-color: var(--disabled-border);
+  background: var(--disabled-bg);
+  color: var(--disabled-ink);
+  cursor: not-allowed;
+}
+
 .scan-options {
   margin-top: 24px;
   padding: 14px 16px 16px;
@@ -320,24 +356,6 @@ button {
 
 .scan-options__reset {
   flex: none;
-  min-height: 32px;
-  padding: 0 10px;
-  border: 1px solid var(--control-border);
-  border-radius: 8px;
-  background: var(--surface-2);
-  color: var(--accent);
-  font-size: 11.5px;
-  font-weight: 650;
-  cursor: pointer;
-}
-
-.scan-options__reset:hover {
-  border-color: var(--accent-2);
-  background: var(--accent-soft);
-}
-
-.scan-options__reset:focus-visible {
-  border-color: var(--accent-2);
 }
 
 .scan-options__grid {
@@ -373,26 +391,8 @@ button {
   font: 12px var(--mono);
 }
 
-.scan-options__model button {
-  min-height: 38px;
-  padding: 0 12px;
-  border: 1px solid var(--control-border);
-  border-radius: 8px;
-  background: var(--surface-2);
-  color: var(--ink);
-  font-size: 12px;
-  font-weight: 650;
-  cursor: pointer;
-}
-
-.scan-options__model select:focus,
-.scan-options__model button:focus {
+.scan-options__model select:focus {
   border-color: var(--accent-2);
-}
-
-.scan-options__model button:disabled {
-  cursor: not-allowed;
-  opacity: 0.6;
 }
 
 .scan-options__model p {
@@ -986,14 +986,6 @@ button {
 
 .btn-add {
   margin-left: auto;
-  background: var(--accent-soft);
-  border: 1px solid var(--accent-border);
-  color: var(--accent);
-  font-weight: 600;
-  font-size: 13px;
-  padding: 8px 16px;
-  border-radius: 9px;
-  cursor: pointer;
 }
 
 .btn-add[aria-disabled='true'] {
