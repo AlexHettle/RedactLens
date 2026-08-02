@@ -303,11 +303,17 @@ describe('automated accessibility checks', () => {
   })
 
   it('animates the advanced-options disclosure while honoring reduced motion', () => {
+    const collapsedShell = ruleBlock(".scan-options:not([data-open='true'])")
+    const collapsedSummary = ruleBlock(
+      ".scan-options:not([data-open='true']) .scan-options__summary",
+    )
     const collapsed = ruleBlock('.scan-options__content')
     const expanded = ruleBlock(".scan-options__content[data-open='true']")
     const chevron = ruleBlock('.scan-options__chevron')
     const reducedMotion = appCss.slice(appCss.indexOf('@media (prefers-reduced-motion: reduce)'))
 
+    expect(collapsedShell).toContain('padding-block: 0')
+    expect(collapsedSummary).toContain('min-height: 54px')
     expect(collapsed).toContain('grid-template-rows: 0fr')
     expect(collapsed).toContain('grid-template-rows 360ms')
     expect(expanded).toContain('grid-template-rows: 1fr')

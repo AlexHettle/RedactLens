@@ -281,6 +281,14 @@ button {
   background: var(--surface);
 }
 
+.scan-options:not([data-open='true']) {
+  padding-block: 0;
+}
+
+.scan-options:not([data-open='true']) .scan-options__summary {
+  min-height: 54px;
+}
+
 .scan-options__summary {
   display: inline-flex;
   align-items: center;
