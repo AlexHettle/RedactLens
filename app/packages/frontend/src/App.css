@@ -86,10 +86,16 @@ button {
   font-size: 12px;
   font-weight: 650;
   cursor: pointer;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease;
 }
 
 .titlebar__contrast:hover {
-  border-color: var(--accent);
+  border-color: var(--action-accent);
+  background: var(--action-accent);
+  color: var(--on-action-accent);
 }
 
 .titlebar__contrast-track {
@@ -100,8 +106,14 @@ button {
   justify-content: flex-start;
   flex: none;
   padding: 3px;
+  border: 2px solid transparent;
   border-radius: 999px;
   background: var(--switch-off);
+  transition: border-color 150ms ease;
+}
+
+.titlebar__contrast:hover .titlebar__contrast-track {
+  border-color: var(--on-action-accent);
 }
 
 .titlebar__contrast-track--on {
@@ -2894,6 +2906,8 @@ button {
     border-top-color: var(--accent-border);
   }
   .progress__fill,
+  .titlebar__contrast,
+  .titlebar__contrast-track,
   .cat-row,
   .ai-card,
   .finding,

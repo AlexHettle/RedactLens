@@ -336,6 +336,26 @@ describe('automated accessibility checks', () => {
     expect(reducedMotion).toContain('transition: none')
   })
 
+  it('animates the high contrast hover treatment while honoring reduced motion', () => {
+    const control = ruleBlock('.titlebar__contrast')
+    const hover = ruleBlock('.titlebar__contrast:hover')
+    const track = ruleBlock('.titlebar__contrast-track')
+    const hoverTrack = ruleBlock('.titlebar__contrast:hover .titlebar__contrast-track')
+    const reducedMotion = appCss.slice(appCss.indexOf('@media (prefers-reduced-motion: reduce)'))
+
+    expect(control).toContain('background-color 150ms ease')
+    expect(control).toContain('border-color 150ms ease')
+    expect(control).toContain('color 150ms ease')
+    expect(hover).toContain('background: var(--action-accent)')
+    expect(hover).toContain('color: var(--on-action-accent)')
+    expect(track).toContain('border: 2px solid transparent')
+    expect(track).toContain('transition: border-color 150ms ease')
+    expect(hoverTrack).toContain('border-color: var(--on-action-accent)')
+    expect(reducedMotion).toContain('.titlebar__contrast')
+    expect(reducedMotion).toContain('.titlebar__contrast-track')
+    expect(reducedMotion).toContain('transition: none')
+  })
+
   it('reserves scrollbar space so disclosures do not change the page width', () => {
     const frameBody = ruleBlock('.frame__body')
     expect(frameBody).toContain('overflow-y: scroll')
