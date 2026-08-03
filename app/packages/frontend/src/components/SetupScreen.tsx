@@ -338,6 +338,8 @@ export default function SetupScreen({ onSubmit, onRequestChange, initial }: Setu
   const installedOllamaModels = health?.ollama_models ?? []
   const selectedModelAvailable = health !== null && modelIsAvailable(health, ollamaModel)
   const aiWillActuallyRun = useLlm && selectedModelAvailable
+  const descriptionNeedsAiWarning =
+    (targetKind === 'description' || hasDescriptionTargets) && !aiWillActuallyRun
 
   const trimmedPath = path.trim()
   const ignoredDirectoryList = listValues(ignoredDirectories)
@@ -889,7 +891,7 @@ export default function SetupScreen({ onSubmit, onRequestChange, initial }: Setu
                   You have reached the limit of 100 custom targets. Remove one to add another.
                 </p>
               )}
-              {hasDescriptionTargets && !aiWillActuallyRun && (
+              {descriptionNeedsAiWarning && (
                 <p role="alert" className="target-box__warn">
                   <IconSparkle size={12} />
                   {descriptionTargetWarning(selectedModelAvailable)}

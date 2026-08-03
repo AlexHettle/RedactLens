@@ -778,26 +778,29 @@ describe('SetupScreen', () => {
     await user.click(screen.getByRole('button', { name: 'Add' }))
   }
 
-  it('warns that a description target needs no-AI-detected when Ollama is unavailable', async () => {
+  it('warns before adding a description target when no local model is available', async () => {
     vi.mocked(client.getDetectors).mockResolvedValue(DETECTORS)
     vi.mocked(client.getHealth).mockResolvedValue({ status: 'ok', ollama_available: false })
     const user = userEvent.setup()
 
     render(<SetupScreen onSubmit={vi.fn()} />)
-    await addDescriptionTarget(user, 'an employee ID')
+    await user.click(screen.getByRole('radio', { name: /Plain-English description/i }))
 
     expect(screen.getByRole('alert')).toHaveTextContent(/no local model was detected/i)
   })
 
-  it('warns that a description target needs the toggle on when Ollama is available but off', async () => {
+  it('warns before adding a description target when local AI is available but off', async () => {
     vi.mocked(client.getDetectors).mockResolvedValue(DETECTORS)
     vi.mocked(client.getHealth).mockResolvedValue({ status: 'ok', ollama_available: true })
     const user = userEvent.setup()
 
     render(<SetupScreen onSubmit={vi.fn()} />)
-    await addDescriptionTarget(user, 'an employee ID')
+    await user.click(screen.getByRole('radio', { name: /Plain-English description/i }))
 
     expect(screen.getByRole('alert')).toHaveTextContent(/needs local ai turned on/i)
+
+    await user.click(screen.getByRole('radio', { name: 'Exact value' }))
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
 
   it('clears the warning once local AI is actually on', async () => {
@@ -806,12 +809,24 @@ describe('SetupScreen', () => {
     const user = userEvent.setup()
 
     render(<SetupScreen onSubmit={vi.fn()} />)
-    await addDescriptionTarget(user, 'an employee ID')
+    await user.click(screen.getByRole('radio', { name: /Plain-English description/i }))
     expect(screen.getByRole('alert')).toBeInTheDocument()
 
     await user.click(await screen.findByRole('switch', { name: /On-device AI/i }))
 
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+
+  it('keeps warning about an existing description target after switching to exact values', async () => {
+    vi.mocked(client.getDetectors).mockResolvedValue(DETECTORS)
+    vi.mocked(client.getHealth).mockResolvedValue({ status: 'ok', ollama_available: true })
+    const user = userEvent.setup()
+
+    render(<SetupScreen onSubmit={vi.fn()} />)
+    await addDescriptionTarget(user, 'an employee ID')
+    await user.click(screen.getByRole('radio', { name: 'Exact value' }))
+
+    expect(screen.getByRole('alert')).toHaveTextContent(/needs local ai turned on/i)
   })
 
   it('adds a target chip with an EXACT badge and removes it again', async () => {
