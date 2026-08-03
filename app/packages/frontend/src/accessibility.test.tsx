@@ -600,6 +600,14 @@ describe('automated accessibility checks', () => {
     expect(ruleBlock('.switch__knob')).toContain('background: var(--switch-knob)')
   })
 
+  it('meets the WCAG AA minimum target size for custom-value removal controls', () => {
+    const removeTarget = ruleBlock('.target-chip__remove')
+
+    expect(removeTarget).toContain('width: 24px')
+    expect(removeTarget).toContain('height: 24px')
+    expect(removeTarget).toContain('flex: none')
+  })
+
   it('uses yellow AI accents and black finding fills in app high-contrast mode', () => {
     const highContrast = tokenBlock(":root[data-contrast='high']")
     expect(highContrast.ai).toBe('#ffff00')

@@ -921,14 +921,15 @@ button {
 }
 
 .target-chip__remove {
-  width: 18px;
-  height: 18px;
+  width: 24px;
+  height: 24px;
+  flex: none;
   border: none;
   background: var(--surface-2);
   border-radius: 50%;
   color: var(--faint-2);
   cursor: pointer;
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1;
   display: flex;
   align-items: center;
