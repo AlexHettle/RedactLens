@@ -336,6 +336,31 @@ describe('automated accessibility checks', () => {
     expect(reducedMotion).toContain('transition: none')
   })
 
+  it('animates card hover feedback without weakening selected-state colors', () => {
+    const category = ruleBlock('.cat-row')
+    const categoryHover = ruleBlock('.cat-row:not(.cat-row--on):hover:not(:disabled)')
+    const selectedCategoryHover = ruleBlock('.cat-row--on:hover:not(:disabled)')
+    const aiCard = ruleBlock('.ai-card')
+    const aiCardHover = ruleBlock('.ai-card:not(.ai-card--on):hover:not(:disabled)')
+    const selectedAiCardHover = ruleBlock('.ai-card--on:hover:not(:disabled)')
+    const reducedMotion = appCss.slice(appCss.indexOf('@media (prefers-reduced-motion: reduce)'))
+
+    expect(category).toContain('background-color 0.15s ease')
+    expect(category).toContain('box-shadow 0.15s ease')
+    expect(categoryHover).toContain('background: var(--accent-soft)')
+    expect(categoryHover).toContain('border-color: var(--accent-border)')
+    expect(selectedCategoryHover).toContain('background: var(--success-soft)')
+    expect(selectedCategoryHover).toContain('border-color: var(--success)')
+    expect(aiCard).toContain('background-color 0.15s ease')
+    expect(aiCard).toContain('box-shadow 0.15s ease')
+    expect(aiCardHover).toContain('background: var(--ai-soft)')
+    expect(aiCardHover).toContain('border-color: var(--ai-border)')
+    expect(selectedAiCardHover).toContain('border-color: var(--ai)')
+    expect(reducedMotion).toContain('.cat-row')
+    expect(reducedMotion).toContain('.ai-card')
+    expect(reducedMotion).toContain('transition: none')
+  })
+
   it('animates the high contrast hover treatment while honoring reduced motion', () => {
     const control = ruleBlock('.titlebar__contrast')
     const hover = ruleBlock('.titlebar__contrast:hover')

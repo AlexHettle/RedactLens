@@ -626,14 +626,27 @@ button {
   background: var(--surface-2);
   border: 1.5px solid transparent;
   transition:
+    background-color 0.15s ease,
     box-shadow 0.15s ease,
     border-color 0.15s ease;
+}
+
+.cat-row:not(.cat-row--on):hover:not(:disabled) {
+  background: var(--accent-soft);
+  border-color: var(--accent-border);
+  box-shadow: 0 7px 18px -12px var(--shadow);
 }
 
 .cat-row--on {
   background: var(--surface);
   border-color: var(--chip-on-border);
   box-shadow: 0 4px 14px -8px rgba(49, 132, 84, 0.38);
+}
+
+.cat-row--on:hover:not(:disabled) {
+  background: var(--success-soft);
+  border-color: var(--success);
+  box-shadow: 0 7px 18px -12px var(--shadow);
 }
 
 .cat-row__icon {
@@ -713,12 +726,26 @@ button {
   text-align: left;
   background: var(--surface-2);
   border: 1.5px solid transparent;
-  transition: border-color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    box-shadow 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.ai-card:not(.ai-card--on):hover:not(:disabled) {
+  background: var(--ai-soft);
+  border-color: var(--ai-border);
+  box-shadow: 0 7px 18px -12px var(--shadow);
 }
 
 .ai-card--on {
   background: var(--ai-soft);
   border-color: var(--ai-border);
+}
+
+.ai-card--on:hover:not(:disabled) {
+  border-color: var(--ai);
+  box-shadow: 0 7px 18px -12px var(--shadow);
 }
 
 .ai-card:disabled {
