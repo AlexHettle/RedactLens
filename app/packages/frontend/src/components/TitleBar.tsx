@@ -16,6 +16,8 @@ export default function TitleBar({
   onToggleTheme,
   onToggleHighContrast,
 }: TitleBarProps) {
+  const themeToggleLabel = theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'
+
   return (
     <header className="titlebar">
       <button
@@ -37,11 +39,16 @@ export default function TitleBar({
       <button
         type="button"
         className="titlebar__theme"
+        data-current-theme={theme}
         onClick={onToggleTheme}
-        aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
-        title="Toggle theme"
+        aria-label={themeToggleLabel}
+        title={themeToggleLabel}
       >
-        {theme === 'dark' ? <IconSun /> : <IconMoon />}
+        {theme === 'dark' ? (
+          <IconSun size={18} strokeWidth={2.2} />
+        ) : (
+          <IconMoon size={18} strokeWidth={2.2} />
+        )}
       </button>
     </header>
   )

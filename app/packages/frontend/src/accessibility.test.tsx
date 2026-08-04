@@ -176,6 +176,12 @@ describe('automated accessibility checks', () => {
       'aria-checked',
       'false',
     )
+    const themeToggle = screen.getByRole('button', { name: 'Switch to dark theme' })
+    expect(themeToggle).toHaveAttribute('title', 'Switch to dark theme')
+    expect(themeToggle).toHaveAttribute('data-current-theme', 'light')
+    expect(themeToggle.querySelector('svg')).toHaveAttribute('width', '18')
+    expect(themeToggle.querySelector('svg')).toHaveAttribute('height', '18')
+    expect(themeToggle.querySelector('svg')).toHaveAttribute('stroke-width', '2.2')
     await expectNoAutomatedViolations()
   })
 
@@ -379,6 +385,27 @@ describe('automated accessibility checks', () => {
     expect(reducedMotion).toContain('.titlebar__contrast')
     expect(reducedMotion).toContain('.titlebar__contrast-track')
     expect(reducedMotion).toContain('transition: none')
+  })
+
+  it('animates the theme toggle hover while honoring reduced motion', () => {
+    const control = ruleBlock('.titlebar__theme')
+    const hover = ruleBlock('.titlebar__theme:hover')
+    const icon = ruleBlock('.titlebar__theme svg')
+    const lightThemeIcon = ruleBlock(".titlebar__theme[data-current-theme='dark']:hover svg")
+    const darkThemeIcon = ruleBlock(".titlebar__theme[data-current-theme='light']:hover svg")
+    const reducedMotion = appCss.slice(appCss.indexOf('@media (prefers-reduced-motion: reduce)'))
+
+    expect(control).toContain('background-color 150ms ease')
+    expect(control).toContain('border-color 150ms ease')
+    expect(control).toContain('color 150ms ease')
+    expect(hover).toContain('background: var(--action-accent)')
+    expect(hover).toContain('color: var(--on-action-accent)')
+    expect(icon).toContain('transition: transform 180ms')
+    expect(lightThemeIcon).toContain('rotate(20deg) scale(1.08)')
+    expect(darkThemeIcon).toContain('rotate(-8deg) scale(1.08)')
+    expect(reducedMotion).toContain('.titlebar__theme')
+    expect(reducedMotion).toContain('.titlebar__theme:hover svg')
+    expect(reducedMotion).toContain('transform: none')
   })
 
   it('reserves scrollbar space so disclosures do not change the page width', () => {

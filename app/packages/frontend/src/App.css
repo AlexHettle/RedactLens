@@ -141,10 +141,30 @@ button {
   justify-content: center;
   color: var(--muted);
   padding: 0;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    color 150ms ease;
 }
 
 .titlebar__theme:hover {
-  color: var(--accent);
+  border-color: var(--action-accent);
+  background: var(--action-accent);
+  color: var(--on-action-accent);
+  box-shadow: 0 6px 14px -10px var(--shadow);
+}
+
+.titlebar__theme svg {
+  transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.titlebar__theme[data-current-theme='dark']:hover svg {
+  transform: rotate(20deg) scale(1.08);
+}
+
+.titlebar__theme[data-current-theme='light']:hover svg {
+  transform: rotate(-8deg) scale(1.08);
 }
 
 /* ---- Banners --------------------------------------------------------------- */
@@ -2936,6 +2956,8 @@ button {
   .progress__fill,
   .titlebar__contrast,
   .titlebar__contrast-track,
+  .titlebar__theme,
+  .titlebar__theme svg,
   .cat-row,
   .ai-card,
   .finding,
@@ -2946,6 +2968,9 @@ button {
   .scan-options__check input,
   .replacement-warning input[type='checkbox'] {
     transition: none;
+  }
+  .titlebar__theme:hover svg {
+    transform: none;
   }
   .switch,
   .switch__knob {

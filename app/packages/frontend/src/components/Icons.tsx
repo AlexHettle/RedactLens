@@ -154,8 +154,8 @@ export function IconEyeOff(props: IconProps) {
 export function IconSun(props: IconProps) {
   return (
     <Icon {...props}>
-      <circle cx="12" cy="12" r="4.5" />
-      <path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19" />
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2.25v2.25M12 19.5v2.25M2.25 12H4.5M19.5 12h2.25M5.1 5.1l1.6 1.6M17.3 17.3l1.6 1.6M18.9 5.1l-1.6 1.6M6.7 17.3l-1.6 1.6" />
     </Icon>
   )
 }
@@ -163,7 +163,7 @@ export function IconSun(props: IconProps) {
 export function IconMoon(props: IconProps) {
   return (
     <Icon {...props}>
-      <path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z" />
+      <path d="M20.4 14.6A8.6 8.6 0 0 1 9.4 3.6a8.7 8.7 0 1 0 11 11Z" />
     </Icon>
   )
 }
