@@ -7,8 +7,15 @@ from unittest.mock import Mock
 
 import launch
 import pytest
+import startup_splash
 from PIL import Image
-from tooling.installer.generate_icon_assets import ACCENT_SOFT, DARK_ACCENT_SOFT
+from tooling.installer.generate_icon_assets import (
+    ACCENT_SOFT,
+    DARK_ACCENT_SOFT,
+    SPINNER_FRAME_COUNT,
+    SPINNER_LOGICAL_SIZE,
+    SPINNER_PIXEL_SIZE,
+)
 from tooling.installer.generate_version_info import parse_version, render_version_info
 from tooling.installer.validate_bundle import (
     GENERATED_LEGAL_DOCUMENT,
@@ -176,6 +183,40 @@ def test_packaged_splash_status_and_close_are_safe(monkeypatch) -> None:
     assert launch._startup_splash is None
 
 
+def test_native_splash_spinner_is_centered_and_wraps() -> None:
+    frame = 0
+    frames = []
+    for _ in range(startup_splash._SPINNER_FRAME_COUNT):
+        frames.append(frame)
+        frame = startup_splash._next_spinner_frame(frame)
+
+    assert frames == list(range(startup_splash._SPINNER_FRAME_COUNT))
+    assert frame == 0
+    assert startup_splash._SPINNER_TOP + startup_splash._SPINNER_LOGICAL_SIZE / 2 == 323
+    assert startup_splash._SPINNER_LOGICAL_SIZE == SPINNER_LOGICAL_SIZE
+    assert SPINNER_PIXEL_SIZE >= SPINNER_LOGICAL_SIZE * 4
+    splash = startup_splash.StartupSplash(Path("redactlens-splash.bmp"))
+    for dpi in (96, 120, 144, 168, 192, 240, 288, 384):
+        scale = dpi / 96
+        splash._dpi = dpi
+        invalidation_rect = splash._spinner_invalidation_rect()
+        rendered_top = round(startup_splash._SPINNER_TOP * scale)
+        rendered_size = round(startup_splash._SPINNER_LOGICAL_SIZE * scale)
+        assert abs(rendered_top + rendered_size / 2 - 323 * scale) <= 0.5
+        assert invalidation_rect.top == rendered_top
+        assert invalidation_rect.bottom - invalidation_rect.top == rendered_size
+        assert splash._is_spinner_only_paint(invalidation_rect)
+        assert not splash._is_spinner_only_paint(startup_splash.wintypes.RECT(0, 0, 600, 360))
+    assert splash._spinner_path.name == "redactlens-splash-spinner.bmp"
+    assert (
+        startup_splash.StartupSplash(
+            Path("redactlens-splash-dark.bmp"),
+            dark=True,
+        )._spinner_path.name
+        == "redactlens-splash-spinner-dark.bmp"
+    )
+
+
 def test_launcher_prefers_saved_theme_then_falls_back_to_windows(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
@@ -315,6 +356,10 @@ def test_release_uses_redactlens_brand_icon() -> None:
     splash_bitmap = ROOT / "assets" / "branding" / "redactlens-splash.bmp"
     dark_splash_image = ROOT / "assets" / "branding" / "redactlens-splash-dark.png"
     dark_splash_bitmap = ROOT / "assets" / "branding" / "redactlens-splash-dark.bmp"
+    spinner_image = ROOT / "assets" / "branding" / "redactlens-splash-spinner.png"
+    spinner_bitmap = ROOT / "assets" / "branding" / "redactlens-splash-spinner.bmp"
+    dark_spinner_image = ROOT / "assets" / "branding" / "redactlens-splash-spinner-dark.png"
+    dark_spinner_bitmap = ROOT / "assets" / "branding" / "redactlens-splash-spinner-dark.bmp"
     pyinstaller_spec = (ROOT / "tooling" / "installer" / "RedactLens.spec").read_text(
         encoding="utf-8"
     )
@@ -328,14 +373,28 @@ def test_release_uses_redactlens_brand_icon() -> None:
     assert splash_bitmap.is_file() and splash_bitmap.stat().st_size > 0
     assert dark_splash_image.is_file() and dark_splash_image.stat().st_size > 0
     assert dark_splash_bitmap.is_file() and dark_splash_bitmap.stat().st_size > 0
+    assert spinner_image.is_file() and spinner_image.stat().st_size > 0
+    assert spinner_bitmap.is_file() and spinner_bitmap.stat().st_size > 0
+    assert dark_spinner_image.is_file() and dark_spinner_image.stat().st_size > 0
+    assert dark_spinner_bitmap.is_file() and dark_spinner_bitmap.stat().st_size > 0
     assert _bitmap_dimensions(splash_bitmap) == (1200, 720)
     assert _bitmap_dimensions(dark_splash_bitmap) == (1200, 720)
+    assert _bitmap_dimensions(spinner_bitmap) == (
+        SPINNER_PIXEL_SIZE * SPINNER_FRAME_COUNT,
+        SPINNER_PIXEL_SIZE,
+    )
+    assert _bitmap_dimensions(dark_spinner_bitmap) == (
+        SPINNER_PIXEL_SIZE * SPINNER_FRAME_COUNT,
+        SPINNER_PIXEL_SIZE,
+    )
     assert 'assets" / "branding" / "redactlens.ico"' in pyinstaller_spec
     assert "SetupIconFile=..\\..\\assets\\branding\\redactlens.ico" in inno_setup
     assert "WizardImageFile=..\\..\\assets\\branding\\redactlens-installer-wizard.png" in inno_setup
     assert "WizardSmallImageFile=..\\..\\assets\\branding\\redactlens-icon.png" in inno_setup
     assert 'assets" / "branding" / "redactlens-splash.bmp"' in pyinstaller_spec
     assert 'assets" / "branding" / "redactlens-splash-dark.bmp"' in pyinstaller_spec
+    assert 'assets" / "branding" / "redactlens-splash-spinner.bmp"' in pyinstaller_spec
+    assert 'assets" / "branding" / "redactlens-splash-spinner-dark.bmp"' in pyinstaller_spec
     assert 'IconFilename: "{app}\\RedactLens.ico"' in inno_setup
     assert 'AppUserModelID: "RedactLens.Desktop"' in inno_setup
 
@@ -348,7 +407,40 @@ def test_splash_footer_has_square_corners() -> None:
 
     for filename, footer_color in splash_assets:
         with Image.open(ROOT / "assets" / "branding" / filename) as image:
-            assert image.convert("RGBA").getpixel((image.width - 1, 288 * 2)) == footer_color
+            rgba = image.convert("RGBA")
+            assert rgba.getpixel((image.width - 1, 288 * 2)) == footer_color
+            assert rgba.getpixel((45 * 2, 314 * 2)) == footer_color
+            assert rgba.getpixel((52 * 2, 314 * 2)) == footer_color
+
+
+def test_splash_spinner_frames_are_antialiased_and_unique() -> None:
+    spinner_assets = (
+        ("redactlens-splash-spinner.png", ACCENT_SOFT),
+        ("redactlens-splash-spinner-dark.png", DARK_ACCENT_SOFT),
+    )
+
+    for filename, footer_color in spinner_assets:
+        with Image.open(ROOT / "assets" / "branding" / filename) as image:
+            rgb = image.convert("RGB")
+            assert rgb.size == (
+                SPINNER_PIXEL_SIZE * SPINNER_FRAME_COUNT,
+                SPINNER_PIXEL_SIZE,
+            )
+            frames = [
+                rgb.crop(
+                    (
+                        frame * SPINNER_PIXEL_SIZE,
+                        0,
+                        (frame + 1) * SPINNER_PIXEL_SIZE,
+                        SPINNER_PIXEL_SIZE,
+                    )
+                )
+                for frame in range(SPINNER_FRAME_COUNT)
+            ]
+            assert len({frame.tobytes() for frame in frames}) == SPINNER_FRAME_COUNT
+            assert frames[0].getpixel((0, 0)) == footer_color[:3]
+            colors = frames[0].getcolors(maxcolors=SPINNER_PIXEL_SIZE**2)
+            assert colors is not None and len(colors) > 6
 
 
 def test_installer_opens_with_a_welcome_page() -> None:

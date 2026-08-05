@@ -23,6 +23,14 @@ _WM_CLOSE = 0x0010
 _WM_DESTROY = 0x0002
 _WM_ERASEBKGND = 0x0014
 _WM_PAINT = 0x000F
+_WM_TIMER = 0x0113
+
+_SPINNER_TIMER_ID = 1
+_SPINNER_INTERVAL_MS = 75
+_SPINNER_FRAME_COUNT = 12
+_SPINNER_LEFT = 43
+_SPINNER_TOP = 313
+_SPINNER_LOGICAL_SIZE = 20
 
 _IMAGE_BITMAP = 0
 _LR_LOADFROMFILE = 0x0010
@@ -98,6 +106,10 @@ def _rgb(red: int, green: int, blue: int) -> int:
     return red | (green << 8) | (blue << 16)
 
 
+def _next_spinner_frame(frame: int) -> int:
+    return (frame + 1) % _SPINNER_FRAME_COUNT
+
+
 def _configure_apis(user32: object, gdi32: object, kernel32: object) -> None:
     """Declare pointer-sized Win32 signatures before passing 64-bit handles."""
     kernel32.GetModuleHandleW.argtypes = [wintypes.LPCWSTR]
@@ -169,6 +181,14 @@ def _configure_apis(user32: object, gdi32: object, kernel32: object) -> None:
         ctypes.POINTER(wintypes.RECT),
         wintypes.BOOL,
     ]
+    user32.SetTimer.argtypes = [
+        wintypes.HWND,
+        wintypes.WPARAM,
+        wintypes.UINT,
+        wintypes.LPVOID,
+    ]
+    user32.SetTimer.restype = wintypes.WPARAM
+    user32.KillTimer.argtypes = [wintypes.HWND, wintypes.WPARAM]
     user32.DrawTextW.argtypes = [
         wintypes.HDC,
         wintypes.LPCWSTR,
@@ -208,8 +228,16 @@ class StartupSplash:
 
     def __init__(self, image_path: Path, *, dark: bool = False) -> None:
         self._image_path = image_path
+        spinner_name = (
+            "redactlens-splash-spinner-dark.bmp" if dark else "redactlens-splash-spinner.bmp"
+        )
+        self._spinner_path = image_path.with_name(spinner_name)
         self._status_color = _rgb(130, 203, 157) if dark else _rgb(53, 111, 78)
         self._status = "Starting RedactLens..."
+        self._spinner_frame = 0
+        self._spinner_bitmap: int | None = None
+        self._spinner_bitmap_width = 0
+        self._spinner_bitmap_height = 0
         self._status_lock = threading.Lock()
         self._ready = threading.Event()
         self._closed = threading.Event()
@@ -249,6 +277,7 @@ class StartupSplash:
         _configure_apis(user32, gdi32, kernel32)
 
         hbitmap = None
+        hspinner = None
         class_name = "RedactLensStartupSplash"
         instance = kernel32.GetModuleHandleW(None)
         atom = 0
@@ -268,6 +297,27 @@ class StartupSplash:
             bitmap = _Bitmap()
             if not gdi32.GetObjectW(hbitmap, ctypes.sizeof(bitmap), ctypes.byref(bitmap)):
                 return
+
+            hspinner = user32.LoadImageW(
+                None,
+                str(self._spinner_path),
+                _IMAGE_BITMAP,
+                0,
+                0,
+                _LR_LOADFROMFILE | _LR_CREATEDIBSECTION,
+            )
+            spinner_bitmap = _Bitmap()
+            if hspinner and gdi32.GetObjectW(
+                hspinner,
+                ctypes.sizeof(spinner_bitmap),
+                ctypes.byref(spinner_bitmap),
+            ):
+                self._spinner_bitmap = hspinner
+                self._spinner_bitmap_width = spinner_bitmap.bmWidth
+                self._spinner_bitmap_height = spinner_bitmap.bmHeight
+            elif hspinner:
+                gdi32.DeleteObject(hspinner)
+                hspinner = None
 
             self._wndproc = _WNDPROC(self._window_proc)
             window_class = _WndClass(
@@ -318,6 +368,12 @@ class StartupSplash:
             if self._closed.is_set():
                 user32.DestroyWindow(window)
             else:
+                user32.SetTimer(
+                    window,
+                    _SPINNER_TIMER_ID,
+                    _SPINNER_INTERVAL_MS,
+                    None,
+                )
                 user32.ShowWindow(window, _SW_SHOWNOACTIVATE)
                 user32.UpdateWindow(window)
 
@@ -333,6 +389,8 @@ class StartupSplash:
             self._ready.set()
             if hbitmap:
                 gdi32.DeleteObject(hbitmap)
+            if hspinner:
+                gdi32.DeleteObject(hspinner)
             if atom:
                 user32.UnregisterClassW(class_name, instance)
 
@@ -353,10 +411,16 @@ class StartupSplash:
             user32.InvalidateRect(window, None, False)
             user32.UpdateWindow(window)
             return 0
+        if message == _WM_TIMER and wparam == _SPINNER_TIMER_ID:
+            self._spinner_frame = _next_spinner_frame(self._spinner_frame)
+            spinner_rect = self._spinner_invalidation_rect()
+            user32.InvalidateRect(window, ctypes.byref(spinner_rect), False)
+            return 0
         if message == _WM_CLOSE:
             user32.DestroyWindow(window)
             return 0
         if message == _WM_DESTROY:
+            user32.KillTimer(window, _SPINNER_TIMER_ID)
             user32.PostQuitMessage(0)
             return 0
         return user32.DefWindowProcW(window, message, wparam, lparam)
@@ -377,6 +441,12 @@ class StartupSplash:
             height = client.bottom - client.top
 
             memory_dc = gdi32.CreateCompatibleDC(hdc)
+            if self._is_spinner_only_paint(paint.rcPaint):
+                # Each sprite already contains the footer background. Blit it
+                # once so an empty intermediate frame never reaches the screen.
+                self._paint_spinner(hdc, memory_dc)
+                return
+
             previous_bitmap = gdi32.SelectObject(memory_dc, self._bitmap)
             gdi32.SetStretchBltMode(hdc, _HALFTONE)
             gdi32.StretchBlt(
@@ -393,6 +463,8 @@ class StartupSplash:
                 _SRCCOPY,
             )
             gdi32.SelectObject(memory_dc, previous_bitmap)
+
+            self._paint_spinner(hdc, memory_dc)
 
             font_height = -round(11 * self._dpi / 72)
             gdi32.CreateFontW.restype = wintypes.HANDLE
@@ -438,6 +510,59 @@ class StartupSplash:
             if memory_dc:
                 gdi32.DeleteDC(memory_dc)
             user32.EndPaint(window, ctypes.byref(paint))
+
+    def _paint_spinner(self, hdc: wintypes.HDC, memory_dc: wintypes.HDC) -> None:
+        spinner_bitmap = self._spinner_bitmap
+        if spinner_bitmap is None:
+            return
+
+        gdi32 = ctypes.windll.gdi32
+        source_width = self._spinner_bitmap_width // _SPINNER_FRAME_COUNT
+        source_height = self._spinner_bitmap_height
+        if source_width <= 0 or source_height <= 0:
+            return
+
+        scale = self._dpi / 96
+        previous_bitmap = gdi32.SelectObject(memory_dc, spinner_bitmap)
+        try:
+            # Scale bundled supersampled pixels instead of asking each display
+            # driver to rasterize a tiny GDI arc differently.
+            gdi32.SetStretchBltMode(hdc, _HALFTONE)
+            gdi32.StretchBlt(
+                hdc,
+                round(_SPINNER_LEFT * scale),
+                round(_SPINNER_TOP * scale),
+                round(_SPINNER_LOGICAL_SIZE * scale),
+                round(_SPINNER_LOGICAL_SIZE * scale),
+                memory_dc,
+                self._spinner_frame * source_width,
+                0,
+                source_width,
+                source_height,
+                _SRCCOPY,
+            )
+        finally:
+            gdi32.SelectObject(memory_dc, previous_bitmap)
+
+    def _spinner_invalidation_rect(self) -> wintypes.RECT:
+        scale = self._dpi / 96
+        left = round(_SPINNER_LEFT * scale)
+        top = round(_SPINNER_TOP * scale)
+        return wintypes.RECT(
+            left,
+            top,
+            left + round(_SPINNER_LOGICAL_SIZE * scale),
+            top + round(_SPINNER_LOGICAL_SIZE * scale),
+        )
+
+    def _is_spinner_only_paint(self, paint_rect: wintypes.RECT) -> bool:
+        spinner_rect = self._spinner_invalidation_rect()
+        return (
+            paint_rect.left >= spinner_rect.left
+            and paint_rect.top >= spinner_rect.top
+            and paint_rect.right <= spinner_rect.right
+            and paint_rect.bottom <= spinner_rect.bottom
+        )
 
     @staticmethod
     def _centered_position(user32: object, width: int, height: int) -> tuple[int, int]:

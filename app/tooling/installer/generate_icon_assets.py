@@ -13,6 +13,12 @@ WIZARD_IMAGE_SIZE = (534, 1022)
 SPLASH_LOGICAL_SIZE = (600, 360)
 SPLASH_SCALE = 2
 SPLASH_IMAGE_SIZE = tuple(dimension * SPLASH_SCALE for dimension in SPLASH_LOGICAL_SIZE)
+SPINNER_LOGICAL_SIZE = 20
+SPINNER_SCALE = 4
+SPINNER_SUPERSAMPLE = 3
+SPINNER_FRAME_COUNT = 12
+SPINNER_ARC_DEGREES = 250
+SPINNER_PIXEL_SIZE = SPINNER_LOGICAL_SIZE * SPINNER_SCALE
 BRAND_GREEN = (53, 111, 78, 255)
 LIGHT_BG = (244, 247, 250, 255)
 INK = (30, 37, 46, 255)
@@ -143,7 +149,6 @@ def render_splash_image(icon: Image.Image, *, dark: bool = False) -> Image.Image
     ink = DARK_INK if dark else INK
     muted = DARK_MUTED if dark else MUTED
     brand = BRAND_GREEN
-    link = DARK_SUCCESS_INK if dark else SUCCESS_INK
     accent_soft = DARK_ACCENT_SOFT if dark else ACCENT_SOFT
     success = DARK_SUCCESS if dark else SUCCESS
     success_ink = DARK_SUCCESS_INK if dark else SUCCESS_INK
@@ -202,14 +207,6 @@ def render_splash_image(icon: Image.Image, *, dark: bool = False) -> Image.Image
     draw.line(scaled((39, 273, 561, 273)), fill=divider, width=scale)
     draw.rectangle(scaled((0, 288, 600, 378)), fill=accent_soft)
     draw.rectangle(scaled((0, 0, 8, 360)), fill=brand)
-    draw.ellipse(scaled((45, 314, 59, 328)), outline=link, width=3 * scale)
-    draw.arc(
-        scaled((49, 318, 55, 324)),
-        start=300,
-        end=90,
-        fill=accent_soft,
-        width=3 * scale,
-    )
     draw.text(
         scaled((456, 315)),
         "LOCAL  •  PRIVATE",
@@ -217,6 +214,39 @@ def render_splash_image(icon: Image.Image, *, dark: bool = False) -> Image.Image
         fill=muted,
     )
     return image
+
+
+def render_spinner_sheet(*, dark: bool = False) -> Image.Image:
+    """Render deterministic, antialiased frames for the native splash spinner."""
+    frame_size = SPINNER_PIXEL_SIZE
+    render_size = frame_size * SPINNER_SUPERSAMPLE
+    background = DARK_ACCENT_SOFT if dark else ACCENT_SOFT
+    track = DARK_SUCCESS_BORDER if dark else SUCCESS_BORDER
+    active = DARK_SUCCESS_INK if dark else BRAND_GREEN
+    sheet = Image.new(
+        "RGB",
+        (frame_size * SPINNER_FRAME_COUNT, frame_size),
+        background[:3],
+    )
+
+    render_scale = SPINNER_SCALE * SPINNER_SUPERSAMPLE
+    ring_bounds = tuple(value * render_scale for value in (2, 2, 18, 18))
+    stroke_width = 2 * render_scale
+
+    for frame in range(SPINNER_FRAME_COUNT):
+        frame_image = Image.new("RGBA", (render_size, render_size), background)
+        draw = ImageDraw.Draw(frame_image)
+        draw.ellipse(ring_bounds, outline=track, width=stroke_width)
+        start = -90 + frame * (360 / SPINNER_FRAME_COUNT)
+        end = start + SPINNER_ARC_DEGREES
+        draw.arc(ring_bounds, start=start, end=end, fill=active, width=stroke_width)
+        frame_image = frame_image.resize(
+            (frame_size, frame_size),
+            Image.Resampling.LANCZOS,
+        ).convert("RGB")
+        sheet.paste(frame_image, (frame * frame_size, 0))
+
+    return sheet
 
 
 def generate_assets(output_directory: Path) -> tuple[Path, ...]:
@@ -229,6 +259,10 @@ def generate_assets(output_directory: Path) -> tuple[Path, ...]:
     splash_bitmap_path = output_directory / "redactlens-splash.bmp"
     dark_splash_path = output_directory / "redactlens-splash-dark.png"
     dark_splash_bitmap_path = output_directory / "redactlens-splash-dark.bmp"
+    spinner_path = output_directory / "redactlens-splash-spinner.png"
+    spinner_bitmap_path = output_directory / "redactlens-splash-spinner.bmp"
+    dark_spinner_path = output_directory / "redactlens-splash-spinner-dark.png"
+    dark_spinner_bitmap_path = output_directory / "redactlens-splash-spinner-dark.bmp"
     icon.save(png_path, format="PNG", optimize=True)
     icon.save(
         ico_path,
@@ -242,6 +276,12 @@ def generate_assets(output_directory: Path) -> tuple[Path, ...]:
     dark_splash = render_splash_image(icon, dark=True)
     dark_splash.save(dark_splash_path, format="PNG", optimize=True)
     dark_splash.convert("RGB").save(dark_splash_bitmap_path, format="BMP")
+    spinner = render_spinner_sheet()
+    spinner.save(spinner_path, format="PNG", optimize=True)
+    spinner.save(spinner_bitmap_path, format="BMP")
+    dark_spinner = render_spinner_sheet(dark=True)
+    dark_spinner.save(dark_spinner_path, format="PNG", optimize=True)
+    dark_spinner.save(dark_spinner_bitmap_path, format="BMP")
     return (
         png_path,
         ico_path,
@@ -250,6 +290,10 @@ def generate_assets(output_directory: Path) -> tuple[Path, ...]:
         splash_bitmap_path,
         dark_splash_path,
         dark_splash_bitmap_path,
+        spinner_path,
+        spinner_bitmap_path,
+        dark_spinner_path,
+        dark_spinner_bitmap_path,
     )
 
 

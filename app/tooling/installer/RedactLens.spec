@@ -43,6 +43,14 @@ a = Analysis(
         (str(project_root / "assets" / "branding" / "redactlens.ico"), "branding"),
         (str(project_root / "assets" / "branding" / "redactlens-splash.bmp"), "branding"),
         (str(project_root / "assets" / "branding" / "redactlens-splash-dark.bmp"), "branding"),
+        (
+            str(project_root / "assets" / "branding" / "redactlens-splash-spinner.bmp"),
+            "branding",
+        ),
+        (
+            str(project_root / "assets" / "branding" / "redactlens-splash-spinner-dark.bmp"),
+            "branding",
+        ),
     ],
     hiddenimports=hiddenimports,
     hookspath=[],
