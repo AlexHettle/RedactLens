@@ -229,9 +229,20 @@ button {
   margin: 3px 0 0;
 }
 
-.ondevice-pill {
+.ondevice-help {
+  position: relative;
   margin-left: auto;
-  display: flex;
+  display: inline-flex;
+  flex: none;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: help;
+}
+
+.ondevice-pill {
+  display: inline-flex;
   align-items: center;
   gap: 5px;
   background: var(--success-soft);
@@ -241,7 +252,68 @@ button {
   padding: 5px 10px;
   font-size: 11.5px;
   font-weight: 600;
-  flex: none;
+  line-height: 1.45;
+  cursor: help;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    transform 150ms ease;
+}
+
+.ondevice-help:hover .ondevice-pill,
+.ondevice-help:focus-visible .ondevice-pill {
+  border-color: var(--success);
+  box-shadow: 0 4px 12px -7px var(--shadow);
+  transform: translateY(-1px);
+}
+
+.ondevice-tooltip {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 9px);
+  right: 0;
+  width: 270px;
+  max-width: calc(100vw - 32px);
+  padding: 9px 11px;
+  border: 1px solid var(--line-2);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: 0 10px 28px -12px var(--shadow);
+  color: var(--ink);
+  font-size: 11.5px;
+  font-weight: 500;
+  line-height: 1.45;
+  text-align: left;
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-4px);
+  transition:
+    opacity 140ms ease,
+    transform 140ms ease,
+    visibility 0s linear 140ms;
+}
+
+.ondevice-tooltip::before {
+  position: absolute;
+  top: -5px;
+  right: 20px;
+  width: 9px;
+  height: 9px;
+  border-top: 1px solid var(--line-2);
+  border-left: 1px solid var(--line-2);
+  background: var(--surface);
+  content: '';
+  transform: rotate(45deg);
+}
+
+.ondevice-tooltip--open {
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+  transition-delay: 0s;
 }
 
 .rule {
@@ -3031,6 +3103,8 @@ button {
   .titlebar__contrast-track,
   .titlebar__theme,
   .titlebar__theme svg,
+  .ondevice-pill,
+  .ondevice-tooltip,
   .seg::before,
   .seg__btn,
   .cat-row,
@@ -3045,6 +3119,11 @@ button {
     transition: none;
   }
   .titlebar__theme:hover svg {
+    transform: none;
+  }
+  .ondevice-help:hover .ondevice-pill,
+  .ondevice-help:focus-visible .ondevice-pill,
+  .ondevice-tooltip {
     transform: none;
   }
   .switch,
@@ -3088,10 +3167,16 @@ button {
   .remediation-files li,
   .finding-values,
   .seg,
+  .ondevice-tooltip,
   .error-banner,
   .warning-banner,
   .success-banner {
     border: 1px solid CanvasText;
+  }
+
+  .ondevice-tooltip::before {
+    border-color: CanvasText;
+    background: Canvas;
   }
 
   .finding__type,

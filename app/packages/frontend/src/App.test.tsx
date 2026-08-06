@@ -763,6 +763,8 @@ describe('App', () => {
 
     await screen.findByRole('heading', { name: 'RedactLens' })
     await user.tab()
+    expect(screen.getByRole('button', { name: 'On device' })).toHaveFocus()
+    await user.tab()
     expect(screen.getByLabelText(/Folder or file to scan/i)).toHaveFocus()
     await user.keyboard('C:\\some\\path{Enter}')
     await screen.findByRole('heading', { name: /Looking through your files/i })

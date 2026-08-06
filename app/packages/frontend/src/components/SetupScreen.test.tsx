@@ -22,6 +22,35 @@ const DETECTORS: DetectorInfo[] = [
 ]
 
 describe('SetupScreen', () => {
+  it('explains the on-device badge on hover and keyboard focus', async () => {
+    vi.mocked(client.getDetectors).mockResolvedValue(DETECTORS)
+    vi.mocked(client.getHealth).mockResolvedValue({ status: 'ok', ollama_available: false })
+    const user = userEvent.setup()
+
+    render(<SetupScreen onSubmit={vi.fn()} />)
+
+    const trigger = screen.getByRole('button', { name: 'On device' })
+    const tooltip = screen.getByText(/processed locally on this computer/i)
+
+    expect(trigger).toHaveAttribute('aria-describedby', tooltip.id)
+    expect(tooltip).toHaveRole('tooltip')
+    expect(tooltip).toHaveAttribute('aria-hidden', 'true')
+
+    await user.hover(trigger)
+    expect(tooltip).toHaveAttribute('aria-hidden', 'false')
+
+    await user.unhover(trigger)
+    expect(tooltip).toHaveAttribute('aria-hidden', 'true')
+
+    await user.tab()
+    expect(trigger).toHaveFocus()
+    expect(tooltip).toHaveAttribute('aria-hidden', 'false')
+
+    await user.keyboard('{Escape}')
+    expect(tooltip).toHaveAttribute('aria-hidden', 'true')
+    expect(trigger).toHaveFocus()
+  })
+
   it('loads and shows category checkboxes, all checked by default', async () => {
     vi.mocked(client.getDetectors).mockResolvedValue(DETECTORS)
     vi.mocked(client.getHealth).mockResolvedValue({ status: 'ok', ollama_available: false })

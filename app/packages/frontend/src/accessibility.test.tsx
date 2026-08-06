@@ -432,6 +432,29 @@ describe('automated accessibility checks', () => {
     expect(reducedMotion).toContain('transition: none')
   })
 
+  it('keeps the on-device explanation legible and motion-sensitive', () => {
+    const trigger = ruleBlock('.ondevice-pill')
+    const hover = ruleBlock(
+      '.ondevice-help:hover .ondevice-pill,\n.ondevice-help:focus-visible .ondevice-pill',
+    )
+    const tooltip = ruleBlock('.ondevice-tooltip')
+    const openTooltip = ruleBlock('.ondevice-tooltip--open')
+    const reducedMotion = appCss.slice(appCss.indexOf('@media (prefers-reduced-motion: reduce)'))
+    const forcedColors = appCss.slice(appCss.indexOf('@media (forced-colors: active)'))
+
+    expect(trigger).toContain('cursor: help')
+    expect(trigger).toContain('transform 150ms ease')
+    expect(hover).toContain('transform: translateY(-1px)')
+    expect(tooltip).toContain('background: var(--surface)')
+    expect(tooltip).toContain('color: var(--ink)')
+    expect(tooltip).toContain('visibility: hidden')
+    expect(openTooltip).toContain('visibility: visible')
+    expect(openTooltip).toContain('pointer-events: auto')
+    expect(reducedMotion).toContain('.ondevice-pill')
+    expect(reducedMotion).toContain('.ondevice-tooltip')
+    expect(forcedColors).toContain('.ondevice-tooltip')
+  })
+
   it('animates the theme toggle hover while honoring reduced motion', () => {
     const control = ruleBlock('.titlebar__theme')
     const hover = ruleBlock('.titlebar__theme:hover')

@@ -51,6 +51,8 @@ const OLLAMA_MODEL_STORAGE_KEY = 'redactlens-ollama-model'
 const LEGACY_OLLAMA_MODEL_STORAGE_KEY = 'redactscout-ollama-model'
 const OLLAMA_STARTUP_RETRY_INTERVAL_MS = 3_000
 const OLLAMA_STARTUP_RETRY_WINDOW_MS = 120_000
+const ON_DEVICE_HELP =
+  'Your files and scan excerpts are processed locally on this computer. RedactLens does not upload them.'
 
 const DEFAULT_SCAN_OPTIONS: Required<ScanOptions> = {
   max_file_size: 100_000_000,
@@ -233,6 +235,7 @@ export default function SetupScreen({ onSubmit, onRequestChange, initial }: Setu
     restoredOptions.use_redactlensignore,
   )
   const [advancedOptionsOpen, setAdvancedOptionsOpen] = useState(false)
+  const [onDeviceHelpOpen, setOnDeviceHelpOpen] = useState(false)
 
   useEffect(() => {
     getDetectors()
@@ -583,10 +586,38 @@ export default function SetupScreen({ onSubmit, onRequestChange, initial }: Setu
           </h1>
           <p className="setup__tagline">Finds sensitive data before you share it.</p>
         </div>
-        <span className="ondevice-pill">
-          <IconLock size={11} />
-          On device
-        </span>
+        <button
+          type="button"
+          className="ondevice-help"
+          aria-label="On device"
+          aria-describedby="ondevice-tooltip"
+          onMouseEnter={() => setOnDeviceHelpOpen(true)}
+          onMouseLeave={(event) => {
+            if (!event.currentTarget.contains(document.activeElement)) setOnDeviceHelpOpen(false)
+          }}
+          onFocus={() => setOnDeviceHelpOpen(true)}
+          onBlur={() => setOnDeviceHelpOpen(false)}
+          onClick={() => setOnDeviceHelpOpen(true)}
+          onKeyDown={(event) => {
+            if (event.key === 'Escape') {
+              event.preventDefault()
+              setOnDeviceHelpOpen(false)
+            }
+          }}
+        >
+          <span className="ondevice-pill" aria-hidden="true">
+            <IconLock size={11} />
+            On device
+          </span>
+          <span
+            id="ondevice-tooltip"
+            role="tooltip"
+            aria-hidden={!onDeviceHelpOpen}
+            className={`ondevice-tooltip${onDeviceHelpOpen ? ' ondevice-tooltip--open' : ''}`}
+          >
+            {ON_DEVICE_HELP}
+          </span>
+        </button>
       </header>
 
       <hr className="rule" />
