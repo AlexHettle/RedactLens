@@ -367,6 +367,51 @@ describe('automated accessibility checks', () => {
     expect(reducedMotion).toContain('transition: none')
   })
 
+  it('slides the target-kind highlight while keeping a static selection symbol', () => {
+    const group = ruleBlock('.seg')
+    const slider = ruleBlock('.seg::before')
+    const descriptionSlider = ruleBlock('.seg--description::before')
+    const option = ruleBlock('.seg__btn')
+    const selected = ruleBlock('.seg__btn--on')
+    const indicator = ruleBlock('.seg__indicator')
+    const indicatorDot = ruleBlock('.seg__indicator::after')
+    const selectedIndicator = ruleBlock('.seg__btn--on .seg__indicator')
+    const reducedMotion = appCss.slice(appCss.indexOf('@media (prefers-reduced-motion: reduce)'))
+    const forcedColors = appCss.slice(appCss.indexOf('@media (forced-colors: active)'))
+    const forcedSlider = ruleBlock('.seg::before', forcedColors)
+    const forcedSelected = ruleBlock('.seg__btn--on', forcedColors)
+
+    expect(group).toContain('display: inline-grid')
+    expect(group).toContain('grid-template-columns: repeat(2, 1fr)')
+    expect(group).toContain('border: 1px solid var(--line-2)')
+    expect(slider).toContain('background: var(--control-selected)')
+    expect(slider).toContain('border: 1px solid var(--control-selected)')
+    expect(slider).toContain('transform: translateX(0)')
+    expect(slider).toContain('transition: transform 220ms')
+    expect(descriptionSlider).toContain('transform: translateX(calc(100% + 2px))')
+    expect(option).toContain('border: 1px solid transparent')
+    expect(selected).toContain('background: transparent')
+    expect(selected).toContain('color: var(--on-control-selected)')
+    expect(selected).toContain('font-weight: 700')
+    expect(selected).not.toContain('animation:')
+    expect(indicator).toContain('border: 1.5px solid currentColor')
+    expect(indicator).toContain('border-radius: 50%')
+    expect(indicator).toContain('opacity: 0')
+    expect(indicator).not.toContain('transition:')
+    expect(indicatorDot).toContain('background: currentColor')
+    expect(indicatorDot).not.toContain('animation:')
+    expect(selectedIndicator).toContain('opacity: 1')
+    expect(appCss).not.toContain('@keyframes seg-select-pop')
+    expect(appCss).not.toContain('@keyframes seg-indicator-settle')
+    expect(reducedMotion).toContain('.seg::before')
+    expect(reducedMotion).toContain('.seg__btn')
+    expect(reducedMotion).toContain('transition: none')
+    expect(forcedSlider).toContain('background: Highlight')
+    expect(forcedSlider).toContain('forced-color-adjust: none')
+    expect(forcedSelected).toContain('background: transparent')
+    expect(forcedSelected).toContain('color: HighlightText')
+  })
+
   it('animates the high contrast hover treatment while honoring reduced motion', () => {
     const control = ruleBlock('.titlebar__contrast')
     const hover = ruleBlock('.titlebar__contrast:hover')
@@ -501,6 +546,7 @@ describe('automated accessibility checks', () => {
       ['on-action-accent', 'action-accent'],
       ['on-action-a', 'action-a'],
       ['on-tier-b-badge', 'tier-b-badge'],
+      ['on-control-selected', 'control-selected'],
     ]
 
     for (const theme of themes) {
@@ -531,6 +577,8 @@ describe('automated accessibility checks', () => {
       expect(declarations).toContain(`background: var(--${background})`)
       expect(declarations).toContain(`color: var(--${foreground})`)
     }
+    expect(ruleBlock('.seg::before')).toContain('background: var(--control-selected)')
+    expect(ruleBlock('.seg__btn--on')).toContain('color: var(--on-control-selected)')
   })
 
   it('keeps disabled result actions readable without opacity compositing', () => {

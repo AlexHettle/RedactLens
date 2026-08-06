@@ -778,6 +778,24 @@ describe('SetupScreen', () => {
     await user.click(screen.getByRole('button', { name: 'Add' }))
   }
 
+  it('moves the segmented-control highlight with the selected target kind', async () => {
+    vi.mocked(client.getDetectors).mockResolvedValue(DETECTORS)
+    vi.mocked(client.getHealth).mockResolvedValue({ status: 'ok', ollama_available: false })
+    const user = userEvent.setup()
+
+    render(<SetupScreen onSubmit={vi.fn()} />)
+
+    const exact = screen.getByRole('radio', { name: 'Exact value' })
+    const description = screen.getByRole('radio', { name: /Plain-English description/i })
+    const segmentedControl = exact.closest('.seg')
+
+    expect(segmentedControl).toHaveClass('seg--literal')
+    await user.click(description)
+    expect(segmentedControl).toHaveClass('seg--description')
+    await user.click(exact)
+    expect(segmentedControl).toHaveClass('seg--literal')
+  })
+
   it('warns before adding a description target when no local model is available', async () => {
     vi.mocked(client.getDetectors).mockResolvedValue(DETECTORS)
     vi.mocked(client.getHealth).mockResolvedValue({ status: 'ok', ollama_available: false })

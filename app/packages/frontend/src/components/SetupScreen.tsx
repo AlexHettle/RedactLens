@@ -842,7 +842,7 @@ export default function SetupScreen({ onSubmit, onRequestChange, initial }: Setu
                 />
               </div>
               <div className="target-box__row">
-                <div className="seg">
+                <div className={`seg seg--${targetKind}`}>
                   <label className={`seg__btn${targetKind === 'literal' ? ' seg__btn--on' : ''}`}>
                     <input
                       type="radio"
@@ -851,6 +851,7 @@ export default function SetupScreen({ onSubmit, onRequestChange, initial }: Setu
                       checked={targetKind === 'literal'}
                       onChange={() => setTargetKind('literal')}
                     />
+                    <span className="seg__indicator" aria-hidden="true" />
                     Exact value
                   </label>
                   <label
@@ -864,6 +865,7 @@ export default function SetupScreen({ onSubmit, onRequestChange, initial }: Setu
                       onChange={() => setTargetKind('description')}
                       aria-label="Plain-English description (needs local AI)"
                     />
+                    <span className="seg__indicator" aria-hidden="true" />
                     Description
                   </label>
                 </div>
