@@ -25,6 +25,7 @@ _WM_ERASEBKGND = 0x0014
 _WM_PAINT = 0x000F
 _WM_TIMER = 0x0113
 
+_SPI_GETCLIENTAREAANIMATION = 0x1042
 _SPINNER_TIMER_ID = 1
 _SPINNER_INTERVAL_MS = 75
 _SPINNER_FRAME_COUNT = 12
@@ -110,6 +111,27 @@ def _next_spinner_frame(frame: int) -> int:
     return (frame + 1) % _SPINNER_FRAME_COUNT
 
 
+def _client_area_animations_enabled(user32: object | None = None) -> bool:
+    """Read Windows' animation preference, preserving motion if the query fails."""
+    try:
+        if user32 is None:
+            if sys.platform != "win32":
+                return True
+            user32 = ctypes.windll.user32
+        enabled = wintypes.BOOL(True)
+        if not user32.SystemParametersInfoW(
+            _SPI_GETCLIENTAREAANIMATION,
+            0,
+            ctypes.byref(enabled),
+            0,
+        ):
+            return True
+        return bool(enabled.value)
+    except Exception:
+        # The splash is cosmetic; an unavailable preference must not delay it.
+        return True
+
+
 def _configure_apis(user32: object, gdi32: object, kernel32: object) -> None:
     """Declare pointer-sized Win32 signatures before passing 64-bit handles."""
     kernel32.GetModuleHandleW.argtypes = [wintypes.LPCWSTR]
@@ -125,6 +147,13 @@ def _configure_apis(user32: object, gdi32: object, kernel32: object) -> None:
     ]
     user32.LoadImageW.restype = wintypes.HANDLE
     user32.LoadCursorW.restype = wintypes.HANDLE
+    user32.SystemParametersInfoW.argtypes = [
+        wintypes.UINT,
+        wintypes.UINT,
+        wintypes.LPVOID,
+        wintypes.UINT,
+    ]
+    user32.SystemParametersInfoW.restype = wintypes.BOOL
     user32.RegisterClassW.argtypes = [ctypes.POINTER(_WndClass)]
     user32.RegisterClassW.restype = wintypes.ATOM
     user32.CreateWindowExW.argtypes = [
@@ -238,6 +267,8 @@ class StartupSplash:
         self._spinner_bitmap: int | None = None
         self._spinner_bitmap_width = 0
         self._spinner_bitmap_height = 0
+        self._animations_enabled = True
+        self._spinner_timer_active = False
         self._status_lock = threading.Lock()
         self._ready = threading.Event()
         self._closed = threading.Event()
@@ -275,6 +306,7 @@ class StartupSplash:
         gdi32 = ctypes.windll.gdi32
         kernel32 = ctypes.windll.kernel32
         _configure_apis(user32, gdi32, kernel32)
+        self._animations_enabled = _client_area_animations_enabled(user32)
 
         hbitmap = None
         hspinner = None
@@ -368,12 +400,7 @@ class StartupSplash:
             if self._closed.is_set():
                 user32.DestroyWindow(window)
             else:
-                user32.SetTimer(
-                    window,
-                    _SPINNER_TIMER_ID,
-                    _SPINNER_INTERVAL_MS,
-                    None,
-                )
+                self._start_spinner_timer(user32, window)
                 user32.ShowWindow(window, _SW_SHOWNOACTIVATE)
                 user32.UpdateWindow(window)
 
@@ -411,7 +438,7 @@ class StartupSplash:
             user32.InvalidateRect(window, None, False)
             user32.UpdateWindow(window)
             return 0
-        if message == _WM_TIMER and wparam == _SPINNER_TIMER_ID:
+        if message == _WM_TIMER and wparam == _SPINNER_TIMER_ID and self._spinner_timer_active:
             self._spinner_frame = _next_spinner_frame(self._spinner_frame)
             spinner_rect = self._spinner_invalidation_rect()
             user32.InvalidateRect(window, ctypes.byref(spinner_rect), False)
@@ -420,10 +447,26 @@ class StartupSplash:
             user32.DestroyWindow(window)
             return 0
         if message == _WM_DESTROY:
-            user32.KillTimer(window, _SPINNER_TIMER_ID)
+            if self._spinner_timer_active:
+                user32.KillTimer(window, _SPINNER_TIMER_ID)
+                self._spinner_timer_active = False
             user32.PostQuitMessage(0)
             return 0
         return user32.DefWindowProcW(window, message, wparam, lparam)
+
+    def _start_spinner_timer(self, user32: object, window: wintypes.HWND) -> None:
+        """Animate only when Windows allows client-area animation."""
+        self._spinner_timer_active = False
+        if not self._animations_enabled:
+            return
+        self._spinner_timer_active = bool(
+            user32.SetTimer(
+                window,
+                _SPINNER_TIMER_ID,
+                _SPINNER_INTERVAL_MS,
+                None,
+            )
+        )
 
     def _paint(self, window: wintypes.HWND) -> None:
         user32 = ctypes.windll.user32

@@ -217,6 +217,56 @@ def test_native_splash_spinner_is_centered_and_wraps() -> None:
     )
 
 
+@pytest.mark.parametrize("animations_enabled", [False, True])
+def test_native_splash_reads_windows_client_area_animation_preference(
+    animations_enabled: bool,
+) -> None:
+    def system_parameters_info(action, _parameter, output, _flags):
+        assert action == startup_splash._SPI_GETCLIENTAREAANIMATION
+        ctypes_output = startup_splash.ctypes.cast(
+            output,
+            startup_splash.ctypes.POINTER(startup_splash.wintypes.BOOL),
+        )
+        ctypes_output.contents.value = animations_enabled
+        return True
+
+    user32 = SimpleNamespace(SystemParametersInfoW=Mock(side_effect=system_parameters_info))
+
+    assert startup_splash._client_area_animations_enabled(user32) is animations_enabled
+    user32.SystemParametersInfoW.assert_called_once()
+
+
+def test_native_splash_defaults_to_animation_when_windows_preference_is_unavailable() -> None:
+    unavailable = SimpleNamespace(SystemParametersInfoW=Mock(return_value=False))
+    broken = SimpleNamespace(SystemParametersInfoW=Mock(side_effect=OSError("unavailable")))
+
+    assert startup_splash._client_area_animations_enabled(unavailable) is True
+    assert startup_splash._client_area_animations_enabled(broken) is True
+
+
+@pytest.mark.parametrize("animations_enabled", [False, True])
+def test_native_splash_starts_spinner_timer_only_when_animation_is_enabled(
+    animations_enabled: bool,
+) -> None:
+    splash = startup_splash.StartupSplash(Path("redactlens-splash.bmp"))
+    splash._animations_enabled = animations_enabled
+    user32 = SimpleNamespace(SetTimer=Mock(return_value=1))
+
+    splash._start_spinner_timer(user32, 123)
+
+    assert splash._spinner_frame == 0
+    assert splash._spinner_timer_active is animations_enabled
+    if animations_enabled:
+        user32.SetTimer.assert_called_once_with(
+            123,
+            startup_splash._SPINNER_TIMER_ID,
+            startup_splash._SPINNER_INTERVAL_MS,
+            None,
+        )
+    else:
+        user32.SetTimer.assert_not_called()
+
+
 def test_launcher_prefers_saved_theme_then_falls_back_to_windows(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
@@ -356,10 +406,6 @@ def test_release_uses_redactlens_brand_icon() -> None:
     splash_bitmap = ROOT / "assets" / "branding" / "redactlens-splash.bmp"
     dark_splash_image = ROOT / "assets" / "branding" / "redactlens-splash-dark.png"
     dark_splash_bitmap = ROOT / "assets" / "branding" / "redactlens-splash-dark.bmp"
-    spinner_image = ROOT / "assets" / "branding" / "redactlens-splash-spinner.png"
-    spinner_bitmap = ROOT / "assets" / "branding" / "redactlens-splash-spinner.bmp"
-    dark_spinner_image = ROOT / "assets" / "branding" / "redactlens-splash-spinner-dark.png"
-    dark_spinner_bitmap = ROOT / "assets" / "branding" / "redactlens-splash-spinner-dark.bmp"
     pyinstaller_spec = (ROOT / "tooling" / "installer" / "RedactLens.spec").read_text(
         encoding="utf-8"
     )
@@ -373,30 +419,34 @@ def test_release_uses_redactlens_brand_icon() -> None:
     assert splash_bitmap.is_file() and splash_bitmap.stat().st_size > 0
     assert dark_splash_image.is_file() and dark_splash_image.stat().st_size > 0
     assert dark_splash_bitmap.is_file() and dark_splash_bitmap.stat().st_size > 0
-    assert spinner_image.is_file() and spinner_image.stat().st_size > 0
-    assert spinner_bitmap.is_file() and spinner_bitmap.stat().st_size > 0
-    assert dark_spinner_image.is_file() and dark_spinner_image.stat().st_size > 0
-    assert dark_spinner_bitmap.is_file() and dark_spinner_bitmap.stat().st_size > 0
     assert _bitmap_dimensions(splash_bitmap) == (1200, 720)
     assert _bitmap_dimensions(dark_splash_bitmap) == (1200, 720)
-    assert _bitmap_dimensions(spinner_bitmap) == (
-        SPINNER_PIXEL_SIZE * SPINNER_FRAME_COUNT,
-        SPINNER_PIXEL_SIZE,
-    )
-    assert _bitmap_dimensions(dark_spinner_bitmap) == (
-        SPINNER_PIXEL_SIZE * SPINNER_FRAME_COUNT,
-        SPINNER_PIXEL_SIZE,
-    )
     assert 'assets" / "branding" / "redactlens.ico"' in pyinstaller_spec
     assert "SetupIconFile=..\\..\\assets\\branding\\redactlens.ico" in inno_setup
     assert "WizardImageFile=..\\..\\assets\\branding\\redactlens-installer-wizard.png" in inno_setup
     assert "WizardSmallImageFile=..\\..\\assets\\branding\\redactlens-icon.png" in inno_setup
     assert 'assets" / "branding" / "redactlens-splash.bmp"' in pyinstaller_spec
     assert 'assets" / "branding" / "redactlens-splash-dark.bmp"' in pyinstaller_spec
-    assert 'assets" / "branding" / "redactlens-splash-spinner.bmp"' in pyinstaller_spec
-    assert 'assets" / "branding" / "redactlens-splash-spinner-dark.bmp"' in pyinstaller_spec
     assert 'IconFilename: "{app}\\RedactLens.ico"' in inno_setup
     assert 'AppUserModelID: "RedactLens.Desktop"' in inno_setup
+
+
+@pytest.mark.parametrize(
+    "filename",
+    ["redactlens-splash-spinner.bmp", "redactlens-splash-spinner-dark.bmp"],
+)
+def test_release_packages_native_splash_spinner_sheets(filename: str) -> None:
+    spinner_bitmap = ROOT / "assets" / "branding" / filename
+    pyinstaller_spec = (ROOT / "tooling" / "installer" / "RedactLens.spec").read_text(
+        encoding="utf-8"
+    )
+
+    assert spinner_bitmap.is_file() and spinner_bitmap.stat().st_size > 0
+    assert _bitmap_dimensions(spinner_bitmap) == (
+        SPINNER_PIXEL_SIZE * SPINNER_FRAME_COUNT,
+        SPINNER_PIXEL_SIZE,
+    )
+    assert f'assets" / "branding" / "{filename}"' in pyinstaller_spec
 
 
 def test_splash_footer_has_square_corners() -> None:
@@ -413,7 +463,7 @@ def test_splash_footer_has_square_corners() -> None:
             assert rgba.getpixel((52 * 2, 314 * 2)) == footer_color
 
 
-def test_splash_spinner_frames_are_antialiased_and_unique() -> None:
+def test_splash_spinner_sheet_provides_a_static_indicator_and_unique_animation_frames() -> None:
     spinner_assets = (
         ("redactlens-splash-spinner.png", ACCENT_SOFT),
         ("redactlens-splash-spinner-dark.png", DARK_ACCENT_SOFT),
@@ -438,8 +488,9 @@ def test_splash_spinner_frames_are_antialiased_and_unique() -> None:
                 for frame in range(SPINNER_FRAME_COUNT)
             ]
             assert len({frame.tobytes() for frame in frames}) == SPINNER_FRAME_COUNT
-            assert frames[0].getpixel((0, 0)) == footer_color[:3]
-            colors = frames[0].getcolors(maxcolors=SPINNER_PIXEL_SIZE**2)
+            static_indicator = frames[0]
+            assert static_indicator.getpixel((0, 0)) == footer_color[:3]
+            colors = static_indicator.getcolors(maxcolors=SPINNER_PIXEL_SIZE**2)
             assert colors is not None and len(colors) > 6
 
 
