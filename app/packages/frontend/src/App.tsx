@@ -18,8 +18,11 @@ type Screen = 'setup' | 'scanning' | 'results'
 
 const THEME_KEY = 'redactlens-theme'
 const HIGH_CONTRAST_KEY = 'redactlens-high-contrast'
+const ZOOM_KEY = 'redactlens-zoom'
 const LEGACY_THEME_KEY = 'redactscout-theme'
 const LEGACY_HIGH_CONTRAST_KEY = 'redactscout-high-contrast'
+const ZOOM_LEVELS = [75, 100, 125, 150, 175, 200, 250, 300, 400] as const
+type ZoomLevel = (typeof ZOOM_LEVELS)[number]
 const THEME_TRANSITION_MS = 240
 const TERMINAL_STATES = new Set(['complete', 'cancelled', 'failed', 'timed_out'])
 const TERMINAL_EVENTS = new Set(['scan_completed', 'scan_cancelled', 'scan_failed'])
@@ -70,6 +73,41 @@ function getInitialHighContrast(): boolean {
   }
 }
 
+function isZoomLevel(value: number): value is ZoomLevel {
+  return ZOOM_LEVELS.some((level) => level === value)
+}
+
+function getInitialZoom(): ZoomLevel {
+  try {
+    const stored = Number(localStorage.getItem(ZOOM_KEY))
+    if (isZoomLevel(stored)) return stored
+  } catch {
+    /* storage unavailable — use the default zoom */
+  }
+  return 100
+}
+
+function stepZoom(current: ZoomLevel, direction: -1 | 1): ZoomLevel {
+  const currentIndex = ZOOM_LEVELS.indexOf(current)
+  const nextIndex = Math.min(ZOOM_LEVELS.length - 1, Math.max(0, currentIndex + direction))
+  return ZOOM_LEVELS[nextIndex]
+}
+
+function formatZoomDimension(scale: number, unit: '%' | 'vw' | 'svh'): string {
+  return `${Number((100 / scale).toFixed(4))}${unit}`
+}
+
+function applyZoomPreference(zoom: ZoomLevel): void {
+  const root = document.documentElement
+  const scale = zoom / 100
+  root.dataset.zoom = String(zoom)
+  root.style.setProperty('--app-zoom', String(scale))
+  root.style.setProperty('--app-layout-width', formatZoomDimension(scale, '%'))
+  root.style.setProperty('--app-layout-height', formatZoomDimension(scale, 'svh'))
+  root.style.setProperty('--app-viewport-width', formatZoomDimension(scale, 'vw'))
+  root.style.setProperty('--app-viewport-height', formatZoomDimension(scale, 'svh'))
+}
+
 function applyEvent(result: PublicScanResult, event: ScanEvent): PublicScanResult {
   const findings = [...result.findings]
   if (event.finding) {
@@ -107,6 +145,7 @@ function applyEvent(result: PublicScanResult, event: ScanEvent): PublicScanResul
 function App() {
   const [theme, setTheme] = useState<Theme>(getInitialTheme)
   const [highContrast, setHighContrast] = useState(getInitialHighContrast)
+  const [zoom, setZoom] = useState<ZoomLevel>(getInitialZoom)
   const [screen, setScreen] = useState<Screen>('setup')
   const [scanTarget, setScanTarget] = useState('')
   const [lastRequest, setLastRequest] = useState<ScanRequest | null>(null)
@@ -162,6 +201,44 @@ function App() {
   }, [highContrast])
 
   useEffect(() => {
+    applyZoomPreference(zoom)
+    try {
+      localStorage.setItem(ZOOM_KEY, String(zoom))
+    } catch {
+      /* storage unavailable — zoom just won't persist */
+    }
+  }, [zoom])
+
+  useEffect(() => {
+    function handleZoomShortcut(event: KeyboardEvent) {
+      if (!event.ctrlKey || event.altKey || event.metaKey) return
+      if (event.key === '+' || event.key === '=') {
+        event.preventDefault()
+        setZoom((current) => stepZoom(current, 1))
+      } else if (event.key === '-' || event.key === '_') {
+        event.preventDefault()
+        setZoom((current) => stepZoom(current, -1))
+      } else if (event.key === '0') {
+        event.preventDefault()
+        setZoom(100)
+      }
+    }
+
+    function handleZoomWheel(event: WheelEvent) {
+      if (!event.ctrlKey || event.deltaY === 0) return
+      event.preventDefault()
+      setZoom((current) => stepZoom(current, event.deltaY < 0 ? 1 : -1))
+    }
+
+    window.addEventListener('keydown', handleZoomShortcut)
+    window.addEventListener('wheel', handleZoomWheel, { passive: false })
+    return () => {
+      window.removeEventListener('keydown', handleZoomShortcut)
+      window.removeEventListener('wheel', handleZoomWheel)
+    }
+  }, [])
+
+  useEffect(() => {
     if (error) errorRef.current?.focus()
   }, [error])
 
@@ -186,6 +263,12 @@ function App() {
       if (cancellationPoll.current) clearTimeout(cancellationPoll.current)
       if (themeTransitionTimer.current) clearTimeout(themeTransitionTimer.current)
       document.documentElement.classList.remove('theme-transition')
+      delete document.documentElement.dataset.zoom
+      document.documentElement.style.removeProperty('--app-zoom')
+      document.documentElement.style.removeProperty('--app-layout-width')
+      document.documentElement.style.removeProperty('--app-layout-height')
+      document.documentElement.style.removeProperty('--app-viewport-width')
+      document.documentElement.style.removeProperty('--app-viewport-height')
     }
   }, [])
 
@@ -221,6 +304,14 @@ function App() {
   function toggleHighContrast() {
     beginThemeTransition()
     setHighContrast((currentValue) => !currentValue)
+  }
+
+  function zoomIn() {
+    setZoom((current) => stepZoom(current, 1))
+  }
+
+  function zoomOut() {
+    setZoom((current) => stepZoom(current, -1))
   }
 
   function closeEventStream() {
@@ -600,8 +691,12 @@ function App() {
       <TitleBar
         theme={theme}
         highContrast={highContrast}
+        zoom={zoom}
         onToggleTheme={toggleTheme}
         onToggleHighContrast={toggleHighContrast}
+        onZoomIn={zoomIn}
+        onZoomOut={zoomOut}
+        onResetZoom={() => setZoom(100)}
       />
       <div className="frame__body">
         {error && (

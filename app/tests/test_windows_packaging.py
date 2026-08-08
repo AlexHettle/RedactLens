@@ -163,6 +163,7 @@ def test_desktop_window_uses_brand_identity_and_persistent_storage(monkeypatch) 
         min_size=(760, 560),
         background_color="#f6f4ee",
         text_select=True,
+        zoomable=True,
     )
     assert desktop_window.settings["ALLOW_DOWNLOADS"] is True
     assert desktop_window.start.call_args.kwargs["gui"] == "edgechromium"

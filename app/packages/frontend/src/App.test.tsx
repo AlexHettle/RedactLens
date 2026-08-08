@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import * as client from './api/client'
@@ -1373,6 +1373,81 @@ describe('App', () => {
     expect(localStorage.getItem('redactlens-high-contrast')).toBe('false')
     await waitFor(() => expect(document.documentElement).not.toHaveClass('theme-transition'))
   })
+
+  it('offers visible zoom commands with persistent keyboard and wheel controls', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await screen.findByRole('heading', { name: 'RedactLens' })
+    expect(screen.getByRole('group', { name: 'Page zoom' })).toBeInTheDocument()
+    const zoomOut = screen.getByRole('button', { name: 'Zoom out' })
+    const zoomIn = screen.getByRole('button', { name: 'Zoom in' })
+    expect(zoomOut).toHaveAttribute('aria-keyshortcuts', 'Control+-')
+    expect(zoomIn).toHaveAttribute('aria-keyshortcuts', 'Control++')
+    expect(zoomOut).toBeEnabled()
+
+    await user.click(zoomIn)
+    expect(document.documentElement.dataset.zoom).toBe('125')
+    expect(localStorage.getItem('redactlens-zoom')).toBe('125')
+
+    fireEvent.keyDown(window, { key: '+', ctrlKey: true })
+    expect(document.documentElement.dataset.zoom).toBe('150')
+    fireEvent.keyDown(window, { key: '-', ctrlKey: true })
+    expect(document.documentElement.dataset.zoom).toBe('125')
+    fireEvent.wheel(window, { deltaY: -100, ctrlKey: true })
+    expect(document.documentElement.dataset.zoom).toBe('150')
+
+    fireEvent.keyDown(window, { key: '0', ctrlKey: true })
+    expect(document.documentElement.dataset.zoom).toBe('100')
+    expect(screen.getByRole('button', { name: /Reset zoom to 100%/i })).toBeDisabled()
+  })
+
+  it.each([
+    [200, '2', '50%', '50svh'],
+    [400, '4', '25%', '25svh'],
+  ])(
+    'restores %i%% zoom and its reflow viewport on every screen',
+    async (savedZoom, scale, width, height) => {
+      localStorage.setItem('redactlens-zoom', String(savedZoom))
+      vi.mocked(client.postScan).mockResolvedValue(scanResult())
+      vi.mocked(client.getScan).mockResolvedValue(
+        scanResult({ event_cursor: 2, state: 'complete' }),
+      )
+      const user = userEvent.setup()
+      render(<App />)
+
+      const expectZoom = () => {
+        expect(document.documentElement.dataset.zoom).toBe(String(savedZoom))
+        expect(document.documentElement.style.getPropertyValue('--app-zoom')).toBe(scale)
+        expect(document.documentElement.style.getPropertyValue('--app-layout-width')).toBe(width)
+        expect(document.documentElement.style.getPropertyValue('--app-layout-height')).toBe(height)
+        expect(localStorage.getItem('redactlens-zoom')).toBe(String(savedZoom))
+      }
+
+      expect(screen.getByRole('heading', { name: 'RedactLens' })).toBeInTheDocument()
+      expectZoom()
+      await startScan(user)
+      expect(
+        screen.getByRole('heading', { name: /Looking through your files/i }),
+      ).toBeInTheDocument()
+      expectZoom()
+
+      await act(async () => {
+        receiveEvent?.(
+          event({
+            sequence: 2,
+            type: 'scan_completed',
+            state: 'complete',
+            progress: { ...PENDING_PROGRESS, stage: 'complete', percent: 100 },
+          }),
+        )
+      })
+      expect(
+        await screen.findByRole('heading', { name: /Here.s what I found/i }),
+      ).toBeInTheDocument()
+      expectZoom()
+    },
+  )
 
   it('restores the saved high contrast preference', () => {
     localStorage.setItem('redactlens-high-contrast', 'true')

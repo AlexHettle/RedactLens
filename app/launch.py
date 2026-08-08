@@ -467,6 +467,7 @@ def show_desktop_window(webview_module: Any, url: str) -> bool:
             min_size=(760, 560),
             background_color="#181c19" if _startup_theme == "dark" else "#f6f4ee",
             text_select=True,
+            zoomable=True,
         )
         if window is not None:
             window.events.loaded += _close_startup_splash

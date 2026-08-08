@@ -168,8 +168,12 @@ describe('automated accessibility checks', () => {
       <TitleBar
         theme="light"
         highContrast={false}
+        zoom={100}
         onToggleTheme={vi.fn()}
         onToggleHighContrast={vi.fn()}
+        onZoomIn={vi.fn()}
+        onZoomOut={vi.fn()}
+        onResetZoom={vi.fn()}
       />,
     )
     expect(screen.getByRole('switch', { name: 'High contrast' })).toHaveAttribute(
@@ -182,6 +186,10 @@ describe('automated accessibility checks', () => {
     expect(themeToggle.querySelector('svg')).toHaveAttribute('width', '18')
     expect(themeToggle.querySelector('svg')).toHaveAttribute('height', '18')
     expect(themeToggle.querySelector('svg')).toHaveAttribute('stroke-width', '2.2')
+    expect(screen.getByRole('group', { name: 'Page zoom' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Zoom out' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: /Reset zoom to 100%/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Zoom in' })).toBeEnabled()
     await expectNoAutomatedViolations()
   })
 
@@ -432,6 +440,30 @@ describe('automated accessibility checks', () => {
     expect(reducedMotion).toContain('transition: none')
   })
 
+  it('reflows app zoom through named container breakpoints', () => {
+    const root = ruleBlock('#root', tokensCss)
+    const frame = ruleBlock('.frame')
+    const tooltip = ruleBlock('.ondevice-tooltip')
+    const dialogBackdrop = ruleBlock('.remediation-review-backdrop')
+
+    expect(root).toContain('width: var(--app-layout-width, 100%)')
+    expect(root).toContain('height: var(--app-layout-height, 100svh)')
+    expect(root).toContain('transform: scale(var(--app-zoom, 1))')
+    expect(root).toContain('transform-origin: top left')
+    expect(root).toContain('container-name: app')
+    expect(root).toContain('container-type: inline-size')
+    expect(frame).toContain('height: 100%')
+    expect(tooltip).toContain('var(--app-viewport-width, 100vw)')
+    expect(dialogBackdrop).toContain('var(--app-viewport-width, 100vw)')
+    expect(dialogBackdrop).toContain('var(--app-viewport-height, 100svh)')
+    expect(appCss).toContain('@container app (min-width: 640px)')
+    expect(appCss).toContain('@container app (max-width: 480px)')
+    expect(appCss).toContain('@container app (min-width: 1080px)')
+    expect(appCss).toContain('@container app (max-width: 640px)')
+    expect(appCss).toContain('@container app (min-width: 900px)')
+    expect(appCss).not.toMatch(/@media \((?:min|max)-width:/)
+  })
+
   it('keeps the on-device explanation legible and motion-sensitive', () => {
     const trigger = ruleBlock('.ondevice-pill')
     const hover = ruleBlock(
@@ -483,7 +515,7 @@ describe('automated accessibility checks', () => {
   })
 
   it('keeps the finding file action in its own metadata row without overlap', () => {
-    const desktopStart = appCss.indexOf('@media (min-width: 900px)')
+    const desktopStart = appCss.indexOf('@container app (min-width: 900px)')
     const desktopEnd = appCss.indexOf('@media (prefers-reduced-motion: reduce)')
     const desktopCss = appCss.slice(desktopStart, desktopEnd)
     const path = ruleBlock('.finding__path')
@@ -499,7 +531,7 @@ describe('automated accessibility checks', () => {
   })
 
   it('keeps finding geometry stable when a result becomes ignored', () => {
-    const desktopStart = appCss.indexOf('@media (min-width: 900px)')
+    const desktopStart = appCss.indexOf('@container app (min-width: 900px)')
     const desktopEnd = appCss.indexOf('@media (prefers-reduced-motion: reduce)')
     const desktopCss = appCss.slice(desktopStart, desktopEnd)
     const desktopAside = ruleBlock('.finding__aside', desktopCss)

@@ -6,7 +6,7 @@
 
 .frame {
   width: 100%;
-  height: 100svh;
+  height: 100%;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -64,6 +64,7 @@ button {
 
 .titlebar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
   gap: 8px;
@@ -71,6 +72,58 @@ button {
   background: var(--chrome);
   border-bottom: 1px solid var(--line-2);
   flex: none;
+}
+
+.titlebar__zoom {
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 0 3px 0 9px;
+  border: 1px solid var(--line-2);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.titlebar__zoom-label {
+  margin-right: 3px;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.titlebar__zoom button {
+  height: 26px;
+  min-width: 28px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0 6px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease;
+}
+
+.titlebar__zoom button:hover:not(:disabled) {
+  background: var(--action-accent);
+  color: var(--on-action-accent);
+}
+
+.titlebar__zoom button:disabled {
+  color: var(--disabled-ink);
+  cursor: not-allowed;
+}
+
+.titlebar__zoom-value {
+  min-width: 48px;
+  font-size: 11px !important;
 }
 
 .titlebar__contrast {
@@ -274,7 +327,7 @@ button {
   top: calc(100% + 9px);
   right: 0;
   width: 270px;
-  max-width: calc(100vw - 32px);
+  max-width: calc(var(--app-viewport-width, 100vw) - 32px);
   padding: 9px 11px;
   border: 1px solid var(--line-2);
   border-radius: 8px;
@@ -564,13 +617,33 @@ button {
   font-weight: 600;
 }
 
-@media (min-width: 640px) {
+@container app (min-width: 640px) {
   .scan-options__grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-@media (max-width: 480px) {
+@container app (max-width: 480px) {
+  .frame__body {
+    padding: 22px 16px 26px;
+  }
+
+  .setup__header {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+  }
+
+  .setup__header > div:nth-child(2) {
+    min-width: 0;
+  }
+
+  .ondevice-help {
+    grid-column: 2;
+    justify-self: start;
+    margin: 7px 0 0;
+  }
+
   .scan-options__intro-row {
     flex-direction: column;
   }
@@ -1838,7 +1911,7 @@ button {
   font-size: 11.5px;
 }
 
-@media (min-width: 1080px) {
+@container app (min-width: 1080px) {
   .triage-controls__grid {
     grid-template-columns: repeat(7, minmax(0, 1fr));
     gap: 7px;
@@ -1928,7 +2001,7 @@ button {
   color: var(--disabled-ink);
 }
 
-@media (max-width: 640px) {
+@container app (max-width: 640px) {
   .bulk-actions {
     align-items: flex-start;
     flex-direction: column;
@@ -2500,7 +2573,10 @@ button {
 
 .remediation-review-backdrop {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  width: var(--app-viewport-width, 100vw);
+  height: var(--app-viewport-height, 100svh);
   z-index: 20;
   display: grid;
   place-items: center;
@@ -2510,7 +2586,7 @@ button {
 
 .remediation-review {
   width: min(640px, 100%);
-  max-height: min(720px, calc(100svh - 48px));
+  max-height: min(720px, calc(var(--app-viewport-height, 100svh) - 48px));
   overflow-y: auto;
   margin: 0;
   padding: 17px;
@@ -2959,7 +3035,7 @@ button {
    becomes two columns, and Results gets a sticky summary sidebar with a wide
    findings column. Narrow windows keep the stacked layout above. */
 
-@media (min-width: 900px) {
+@container app (min-width: 900px) {
   /* Cap the content line length: side padding grows so the content column
      never exceeds 1180px, while the scrollbar stays at the window edge. */
   .frame__body {
@@ -3099,6 +3175,7 @@ button {
     border-top-color: var(--accent-border);
   }
   .progress__fill,
+  .titlebar__zoom button,
   .titlebar__contrast,
   .titlebar__contrast-track,
   .titlebar__theme,
@@ -3200,6 +3277,8 @@ button {
   .finding-values > button,
   .btn-again,
   .btn-export--secondary,
+  .titlebar__zoom,
+  .titlebar__zoom button,
   .bulk-actions button,
   .bulk-plan-actions button,
   .bulk-btn {
@@ -3208,6 +3287,12 @@ button {
 
   .bulk-actions button[aria-pressed='true'] {
     border-color: Highlight;
+    background: Highlight;
+    color: HighlightText;
+  }
+
+  .titlebar__zoom button:hover:not(:disabled) {
+    border: 1px solid Highlight;
     background: Highlight;
     color: HighlightText;
   }

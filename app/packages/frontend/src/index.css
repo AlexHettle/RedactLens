@@ -220,11 +220,19 @@
 body {
   margin: 0;
   background: var(--bg);
+  overflow: hidden;
 }
 
-/* The app fills the whole viewport; scrolling happens inside .frame__body. */
+/* App-owned zoom keeps a full-window canvas while shrinking the layout
+   viewport by the inverse scale. This makes text enlargement reflow instead
+   of creating a page-level horizontal scrollbar. */
 #root {
-  height: 100svh;
+  width: var(--app-layout-width, 100%);
+  height: var(--app-layout-height, 100svh);
+  transform: scale(var(--app-zoom, 1));
+  transform-origin: top left;
+  container-name: app;
+  container-type: inline-size;
 }
 
 /* ---- Shared keyframes (Haven motion) ------------------------------------ */
