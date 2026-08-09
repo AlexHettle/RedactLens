@@ -876,11 +876,15 @@ try {
     45_000,
   );
   await waitFor(
-    "the stable five/ four tier summary",
+    "the stable five/four tier summary",
     `(() => {
-      const labels = [...document.querySelectorAll('button.stat')].map((item) => item.getAttribute('aria-label') ?? '');
-      return labels.some((label) => label.startsWith('5 confirmed findings')) &&
-        labels.some((label) => label.startsWith('4 double-check findings'));
+      const accessibleName = (item) => (item.getAttribute('aria-labelledby') ?? '')
+        .split(/\\s+/)
+        .map((id) => document.getElementById(id)?.textContent?.trim() ?? '')
+        .filter(Boolean)
+        .join(' ');
+      const labels = [...document.querySelectorAll('button.stat')].map(accessibleName);
+      return labels.includes('5 Confirmed') && labels.includes('4 Double-check');
     })()`,
   );
 
@@ -925,8 +929,13 @@ try {
   );
 
   const filtered = await evaluate(`(() => {
-    const button = [...document.querySelectorAll('button.stat')].find((candidate) =>
-      candidate.getAttribute('aria-label')?.includes('filter to Tier A'),
+    const accessibleName = (item) => (item.getAttribute('aria-labelledby') ?? '')
+      .split(/\\s+/)
+      .map((id) => document.getElementById(id)?.textContent?.trim() ?? '')
+      .filter(Boolean)
+      .join(' ');
+    const button = [...document.querySelectorAll('button.stat')].find(
+      (candidate) => accessibleName(candidate) === '5 Confirmed',
     );
     if (!button) return false;
     button.click();
@@ -935,17 +944,13 @@ try {
   assert.equal(filtered, true, "The Tier A summary filter was not available.");
   await waitFor(
     "the active Tier A filter",
-    `[...document.querySelectorAll('button.stat')].some((button) => button.getAttribute('aria-pressed') === 'true' && button.getAttribute('aria-label')?.includes('Tier A'))`,
+    `[...document.querySelectorAll('button.stat')].some((button) => button.getAttribute('aria-pressed') === 'true' && button.textContent?.includes('Confirmed'))`,
   );
 
-  await waitForEnabledButton("Select visible actionable Tier A findings", {
-    startsWith: true,
-  });
-  await clickButton("Select visible actionable Tier A findings", {
-    startsWith: true,
-  });
-  await waitForEnabledButton("Include selected actionable findings (5)");
-  await clickButton("Include selected actionable findings (5)");
+  await waitForEnabledButton("Tier A (5)");
+  await clickButton("Tier A (5)");
+  await waitForEnabledButton("Include (5)");
+  await clickButton("Include (5)");
   await waitFor(
     "five persisted remediation selections",
     `(() => {
@@ -1113,9 +1118,13 @@ try {
   await waitFor(
     "zero Tier A and two Tier B findings in the new output scan",
     `(() => {
-      const labels = [...document.querySelectorAll('button.stat')].map((item) => item.getAttribute('aria-label') ?? '');
-      return labels.some((label) => label.startsWith('0 confirmed findings')) &&
-        labels.some((label) => label.startsWith('2 double-check findings'));
+      const accessibleName = (item) => (item.getAttribute('aria-labelledby') ?? '')
+        .split(/\\s+/)
+        .map((id) => document.getElementById(id)?.textContent?.trim() ?? '')
+        .filter(Boolean)
+        .join(' ');
+      const labels = [...document.querySelectorAll('button.stat')].map(accessibleName);
+      return labels.includes('0 Confirmed') && labels.includes('2 Double-check');
     })()`,
   );
   assert.equal(

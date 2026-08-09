@@ -96,31 +96,34 @@ def _wait_for_server(port: int, process: subprocess.Popen[bytes]) -> None:
     raise RuntimeError("Timed out waiting for the live FastAPI server.")
 
 
-def _wait_for_devtools(profile: Path, process: subprocess.Popen[bytes]) -> str:
-    active_port = profile / "DevToolsActivePort"
+def _free_devtools_port() -> int:
+    with socket.socket() as probe:
+        probe.bind(("127.0.0.1", 0))
+        return int(probe.getsockname()[1])
+
+
+def _wait_for_devtools(browser_port: int, process: subprocess.Popen[bytes]) -> str:
     deadline = time.monotonic() + STARTUP_TIMEOUT_SECONDS
+    endpoint = f"http://127.0.0.1:{browser_port}/json/list"
+    last_error = "the endpoint did not return a page target"
     while time.monotonic() < deadline:
         if process.poll() is not None:
             raise RuntimeError(f"The browser exited during startup with code {process.returncode}.")
         try:
-            lines = active_port.read_text(encoding="utf-8").splitlines()
-        except OSError:
-            lines = []
-        if len(lines) >= 2 and lines[0].isdigit() and lines[1].startswith("/devtools/browser/"):
-            browser_port = int(lines[0])
-            try:
-                with urlopen(f"http://127.0.0.1:{browser_port}/json/list", timeout=1) as response:
-                    targets = json.load(response)
-            except (OSError, URLError, json.JSONDecodeError):
-                time.sleep(0.1)
-                continue
+            with urlopen(endpoint, timeout=1) as response:
+                targets = json.load(response)
             page = next((target for target in targets if target.get("type") == "page"), None)
             if page and page.get("webSocketDebuggerUrl"):
                 return str(page["webSocketDebuggerUrl"]).replace(
                     "ws://localhost:", "ws://127.0.0.1:"
                 )
+        except (OSError, URLError, json.JSONDecodeError) as error:
+            last_error = str(error)
         time.sleep(0.1)
-    raise RuntimeError("Timed out waiting for the browser DevTools endpoint.")
+    raise RuntimeError(
+        f"Timed out waiting for the browser DevTools endpoint at {endpoint}; "
+        f"last result: {last_error}."
+    )
 
 
 def _terminate(process: subprocess.Popen[bytes] | None) -> None:
@@ -134,7 +137,7 @@ def _terminate(process: subprocess.Popen[bytes] | None) -> None:
         process.wait(timeout=5)
 
 
-def _browser_command(browser: Path, profile: Path) -> list[str]:
+def _browser_command(browser: Path, profile: Path, debug_port: int) -> list[str]:
     return [
         str(browser),
         "--headless=new",
@@ -155,7 +158,8 @@ def _browser_command(browser: Path, profile: Path) -> list[str]:
         # application-container failures in locked-down CI/service accounts.
         "--no-sandbox",
         "--remote-allow-origins=*",
-        "--remote-debugging-port=0",
+        "--remote-debugging-address=127.0.0.1",
+        f"--remote-debugging-port={debug_port}",
         f"--user-data-dir={profile}",
         "about:blank",
     ]
@@ -176,17 +180,18 @@ def _launch_browser(
         profile = workspace / f"browser-profile-{index}"
         browser_log = workspace / f"browser-{index}.log"
         profile.mkdir()
+        debug_port = _free_devtools_port()
         process: subprocess.Popen[bytes] | None = None
         try:
             with browser_log.open("wb") as log:
                 process = subprocess.Popen(
-                    _browser_command(candidate, profile),
+                    _browser_command(candidate, profile, debug_port),
                     cwd=ROOT,
                     stdout=log,
                     stderr=subprocess.STDOUT,
                     creationflags=_creation_flags(),
                 )
-            web_socket_url = _wait_for_devtools(profile, process)
+            web_socket_url = _wait_for_devtools(debug_port, process)
             if failures:
                 print(
                     "Live browser startup fallback succeeded after: " + " | ".join(failures),
