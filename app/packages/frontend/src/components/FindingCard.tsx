@@ -45,6 +45,7 @@ export default function FindingCard({
 }: FindingCardProps) {
   const maskedPreview = displayRedactedPreview(finding.redacted_preview)
   const findingContext = `finding ${maskedPreview} from ${displayPath}`
+  const findingContextId = `finding-${finding.id}-action-context`
   const supportsRedaction = findingSupportsAutomaticRedaction(finding, status)
 
   function requestStateChange(action: (target: PublicFinding) => void) {
@@ -57,6 +58,9 @@ export default function FindingCard({
       data-finding-id={finding.id}
       tabIndex={-1}
     >
+      <span id={findingContextId} className="visually-hidden">
+        For {findingContext}. Full path: {finding.file_path}.
+      </span>
       {supportsRedaction && status !== 'ignored' && (
         <label className="finding__select">
           <input
@@ -142,7 +146,7 @@ export default function FindingCard({
             type="button"
             className="finding__open"
             disabled={disabled}
-            aria-label={`Show ${displayPath} in folder for ${maskedPreview}`}
+            aria-describedby={findingContextId}
             onClick={() => onOpen(finding)}
           >
             <IconFolder size={12} />
@@ -161,7 +165,7 @@ export default function FindingCard({
             type="button"
             className="finding__anon"
             disabled={disabled}
-            aria-label={`Include ${findingContext} in redaction plan`}
+            aria-describedby={findingContextId}
             onClick={() => requestStateChange(onInclude)}
           >
             <IconRedact size={14} />
@@ -171,7 +175,7 @@ export default function FindingCard({
             type="button"
             className="finding__ignore"
             disabled={disabled}
-            aria-label={`Ignore ${findingContext}`}
+            aria-describedby={findingContextId}
             onClick={() => requestStateChange(onIgnore)}
           >
             Ignore
@@ -187,7 +191,7 @@ export default function FindingCard({
             type="button"
             className="finding__undo"
             disabled={disabled}
-            aria-label={`Exclude ${findingContext} from redaction plan`}
+            aria-describedby={findingContextId}
             onClick={() => requestStateChange(onExclude)}
           >
             Exclude
@@ -200,7 +204,7 @@ export default function FindingCard({
             type="button"
             className="finding__undo"
             disabled={disabled}
-            aria-label={`Return ${findingContext} to pending`}
+            aria-describedby={findingContextId}
             onClick={() => requestStateChange(onRestore)}
           >
             Return to pending

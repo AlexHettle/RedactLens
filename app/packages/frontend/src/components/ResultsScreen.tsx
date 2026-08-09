@@ -177,35 +177,63 @@ export default function ResultsScreen({
             <button
               type="button"
               className="stat"
-              aria-label={`${tierA.length} confirmed findings; ${filters.tier === 'A' ? 'clear Tier A filter' : 'filter to Tier A'}`}
+              aria-labelledby="tier-a-count tier-a-label"
+              aria-describedby="tier-a-filter-description"
               aria-pressed={filters.tier === 'A'}
               onClick={() => updateFilter('tier', filters.tier === 'A' ? 'all' : 'A')}
             >
-              <span className="stat__num stat__num--a">{tierA.length}</span>
-              <span className="stat__label">Confirmed</span>
+              <span id="tier-a-count" className="stat__num stat__num--a">
+                {tierA.length}
+              </span>
+              <span id="tier-a-label" className="stat__label">
+                Confirmed
+              </span>
             </button>
             <button
               type="button"
               className="stat"
-              aria-label={`${tierB.length} double-check findings; ${filters.tier === 'B' ? 'clear Tier B filter' : 'filter to Tier B'}`}
+              aria-labelledby="tier-b-count tier-b-label"
+              aria-describedby="tier-b-filter-description"
               aria-pressed={filters.tier === 'B'}
               onClick={() => updateFilter('tier', filters.tier === 'B' ? 'all' : 'B')}
             >
-              <span className="stat__num stat__num--b">{tierB.length}</span>
-              <span className="stat__label">Double-check</span>
+              <span id="tier-b-count" className="stat__num stat__num--b">
+                {tierB.length}
+              </span>
+              <span id="tier-b-label" className="stat__label">
+                Double-check
+              </span>
             </button>
             <button
               type="button"
               className="stat"
-              aria-label={`${handledCount} decided findings; ${filters.status === 'decided' ? 'clear decided filter' : 'filter to decided findings'}`}
+              aria-labelledby="decided-count decided-label"
+              aria-describedby="decided-filter-description"
               aria-pressed={filters.status === 'decided'}
               onClick={() =>
                 updateFilter('status', filters.status === 'decided' ? 'all' : 'decided')
               }
             >
-              <span className="stat__num stat__num--handled">{handledCount}</span>
-              <span className="stat__label">Decided</span>
+              <span id="decided-count" className="stat__num stat__num--handled">
+                {handledCount}
+              </span>
+              <span id="decided-label" className="stat__label">
+                Decided
+              </span>
             </button>
+            <div className="visually-hidden">
+              <span id="tier-a-filter-description">
+                {filters.tier === 'A' ? 'Clears the Tier A filter.' : 'Filters results to Tier A.'}
+              </span>
+              <span id="tier-b-filter-description">
+                {filters.tier === 'B' ? 'Clears the Tier B filter.' : 'Filters results to Tier B.'}
+              </span>
+              <span id="decided-filter-description">
+                {filters.status === 'decided'
+                  ? 'Clears the decided findings filter.'
+                  : 'Filters results to decided findings.'}
+              </span>
+            </div>
           </div>
 
           {result.findings.length > 0 && !incomplete && (

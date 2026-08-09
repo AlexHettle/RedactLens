@@ -208,7 +208,7 @@ describe('App', () => {
     expect(await screen.findByRole('heading', { name: /Here.s what I found/ })).toHaveFocus()
     expect(client.postScan).toHaveBeenCalledTimes(1)
 
-    await user.click(screen.getByRole('button', { name: /Show .*a\.txt in folder for/i }))
+    await user.click(screen.getByRole('button', { name: 'Show in folder' }))
     expect(await screen.findByText(/Showed a\.txt in its folder/i)).toHaveAttribute(
       'role',
       'status',
@@ -467,7 +467,7 @@ describe('App', () => {
     expect(screen.getByText('Showing 103 of 103 skipped files.')).toBeVisible()
     expect(screen.queryByRole('button', { name: /more skipped files/i })).not.toBeInTheDocument()
     expect(
-      screen.queryByRole('button', { name: /Include finding .* in redaction plan/i }),
+      screen.queryByRole('button', { name: 'Include in redaction plan' }),
     ).not.toBeInTheDocument()
   })
 
@@ -1127,9 +1127,9 @@ describe('App', () => {
     await user.click(screen.getByRole('button', { name: /Scan this location/i }))
     expect(await screen.findByRole('heading', { name: /Here.s what I found/ })).toBeInTheDocument()
 
-    await user.click(screen.getByRole('button', { name: /Show .*a\.txt in folder for/i }))
+    await user.click(screen.getByRole('button', { name: 'Show in folder' }))
     expect(await screen.findByText(/Showed a\.txt in its folder/i)).toBeInTheDocument()
-    await user.click(screen.getByRole('button', { name: /Include finding/i }))
+    await user.click(screen.getByRole('button', { name: 'Include in redaction plan' }))
 
     expect(await screen.findByRole('heading', { name: 'RedactLens' })).toBeInTheDocument()
     expect(screen.queryByText(/Showed a\.txt in its folder/i)).not.toBeInTheDocument()
@@ -1196,7 +1196,7 @@ describe('App', () => {
         await screen.findByRole('heading', { name: /Here.s what I found/i }),
       ).toBeInTheDocument()
 
-      const oldReveal = screen.getByRole('button', { name: /Show .*a\.txt in folder for/i })
+      const oldReveal = screen.getByRole('button', { name: 'Show in folder' })
       await user.click(oldReveal)
       await user.click(oldReveal)
       await user.click(screen.getByRole('button', { name: 'Export JSON' }))
@@ -1208,9 +1208,7 @@ describe('App', () => {
       await user.clear(target)
       await user.type(target, 'C:\\new')
       await user.click(screen.getByRole('button', { name: /Scan this location/i }))
-      expect(
-        await screen.findByRole('button', { name: /Show .*b\.txt in folder for/i }),
-      ).toBeInTheDocument()
+      expect(await screen.findByRole('button', { name: 'Show in folder' })).toBeInTheDocument()
 
       await act(async () => {
         revealSuccess.resolve({ status: 'ok' })
@@ -1229,9 +1227,7 @@ describe('App', () => {
         await Promise.resolve()
       })
 
-      expect(
-        screen.getByRole('button', { name: /Show .*b\.txt in folder for/i }),
-      ).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Show in folder' })).toBeInTheDocument()
       expect(screen.queryByRole('heading', { name: 'RedactLens' })).not.toBeInTheDocument()
       expect(screen.queryByText(/Showed a\.txt|Report saved/i)).not.toBeInTheDocument()
       expect(screen.queryByText(/saved server-side session was cleared/i)).not.toBeInTheDocument()

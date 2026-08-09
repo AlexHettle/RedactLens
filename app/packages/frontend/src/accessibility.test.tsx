@@ -253,7 +253,7 @@ describe('automated accessibility checks', () => {
     await user.click(screen.getByRole('switch', { name: 'Full finding values' }))
     expect(await screen.findByText('123-45-6789')).toBeInTheDocument()
     await expectNoAutomatedViolations()
-    await user.click(screen.getByRole('button', { name: /Include finding .* in redaction plan/i }))
+    await user.click(screen.getByRole('button', { name: 'Include in redaction plan' }))
     await user.click(await screen.findByRole('button', { name: 'Review remediation' }))
     await expectNoAutomatedViolations()
   })

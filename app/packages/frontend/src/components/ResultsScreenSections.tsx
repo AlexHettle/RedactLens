@@ -317,38 +317,29 @@ export function BulkActions({
           <button
             type="button"
             aria-pressed={allVisibleSelected}
+            aria-describedby="bulk-visible-selection-description"
             disabled={busy || visibleCount === 0}
             onClick={onToggleVisible}
           >
-            <span aria-hidden="true">Select all ({visibleCount})</span>
-            <span className="visually-hidden">
-              {allVisibleSelected ? 'Unselect' : 'Select'} all visible actionable findings (
-              {visibleCount})
-            </span>
+            Select all ({visibleCount})
           </button>
           <button
             type="button"
             aria-pressed={allVisibleTierASelected}
+            aria-describedby="bulk-tier-a-selection-description"
             disabled={busy || visibleTierACount === 0}
             onClick={onToggleTierA}
           >
-            <span aria-hidden="true">Tier A ({visibleTierACount})</span>
-            <span className="visually-hidden">
-              {allVisibleTierASelected ? 'Unselect' : 'Select'} visible actionable Tier A findings (
-              {visibleTierACount})
-            </span>
+            Tier A ({visibleTierACount})
           </button>
           <button
             type="button"
             aria-pressed={allVisibleTierBSelected}
+            aria-describedby="bulk-tier-b-selection-description"
             disabled={busy || visibleTierBCount === 0}
             onClick={onToggleTierB}
           >
-            <span aria-hidden="true">Tier B ({visibleTierBCount})</span>
-            <span className="visually-hidden">
-              {allVisibleTierBSelected ? 'Unselect' : 'Select'} visible actionable Tier B findings (
-              {visibleTierBCount})
-            </span>
+            Tier B ({visibleTierBCount})
           </button>
         </div>
       </section>
@@ -356,21 +347,38 @@ export function BulkActions({
         <button
           type="button"
           className="bulk-plan-actions__primary"
+          aria-describedby="bulk-include-description"
           disabled={busy || selectedCount === 0}
           onClick={onInclude}
         >
-          <span aria-hidden="true">Include ({selectedCount})</span>
-          <span className="visually-hidden">
-            Include selected actionable findings ({selectedCount})
-          </span>
+          Include ({selectedCount})
         </button>
-        <button type="button" disabled={busy || selectedIncludedCount === 0} onClick={onExclude}>
-          <span aria-hidden="true">Exclude ({selectedIncludedCount})</span>
-          <span className="visually-hidden">
-            Exclude selected included {selectedIncludedCount === 1 ? 'finding' : 'findings'} from
-            redaction plan ({selectedIncludedCount})
-          </span>
+        <button
+          type="button"
+          aria-describedby="bulk-exclude-description"
+          disabled={busy || selectedIncludedCount === 0}
+          onClick={onExclude}
+        >
+          Exclude ({selectedIncludedCount})
         </button>
+      </div>
+      <div className="visually-hidden">
+        <span id="bulk-visible-selection-description">
+          {allVisibleSelected ? 'Unselects' : 'Selects'} all visible actionable findings.
+        </span>
+        <span id="bulk-tier-a-selection-description">
+          {allVisibleTierASelected ? 'Unselects' : 'Selects'} visible actionable Tier A findings.
+        </span>
+        <span id="bulk-tier-b-selection-description">
+          {allVisibleTierBSelected ? 'Unselects' : 'Selects'} visible actionable Tier B findings.
+        </span>
+        <span id="bulk-include-description">
+          Includes the selected actionable findings in the redaction plan.
+        </span>
+        <span id="bulk-exclude-description">
+          Excludes the selected included {selectedIncludedCount === 1 ? 'finding' : 'findings'} from
+          the redaction plan.
+        </span>
       </div>
     </div>
   )

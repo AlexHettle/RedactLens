@@ -226,13 +226,14 @@ export default function RemediationReview({
           {alertMessage}
         </p>
         <ul className="remediation-files">
-          {visiblePlanFiles.map((file) => {
+          {visiblePlanFiles.map((file, index) => {
             const displayedPath = replacingOriginals ? file.source_path : file.output_path
             const originalWasReplaced =
               file.source_path === file.output_path && file.output_state === 'current'
+            const displayedPathId = `remediation-file-${index}-displayed-path`
             return (
               <li key={file.source_path} data-review-file={file.source_path} tabIndex={-1}>
-                <code>{relativePath(displayedPath, roots)}</code>
+                <code id={displayedPathId}>{relativePath(displayedPath, roots)}</code>
                 <details>
                   <summary>Show full {replacingOriginals ? 'original' : 'output'} path</summary>
                   <code>{displayedPath}</code>
@@ -256,9 +257,7 @@ export default function RemediationReview({
                 {file.output_state === 'current' && file.included_finding_ids[0] && (
                   <button
                     type="button"
-                    aria-label={`Show ${
-                      originalWasReplaced ? 'replaced original' : 'redacted copy'
-                    } ${relativePath(file.output_path, roots)} in folder`}
+                    aria-describedby={displayedPathId}
                     onClick={() => onOpenOutput(file.included_finding_ids[0], file.output_path)}
                   >
                     Show {originalWasReplaced ? 'replaced file' : 'redacted copy'} in folder

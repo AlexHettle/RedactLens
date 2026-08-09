@@ -13,12 +13,12 @@ import ResultsScreen from './ResultsScreen'
 
 vi.mock('../api/client')
 
-const INCLUDE_ACTION_NAME = /Include finding .* in redaction plan/i
-const IGNORE_ACTION_NAME = /Ignore finding /i
-const RETURN_ACTION_NAME = /Return finding .* to pending/i
-const EXCLUDE_ACTION_NAME = /Exclude finding .* from redaction plan/i
-const OPEN_ACTION_NAME = /Show .* in folder for /i
-const OPEN_OUTPUT_ACTION_NAME = /Show redacted copy .* in folder/i
+const INCLUDE_ACTION_NAME = /^Include in redaction plan$/i
+const IGNORE_ACTION_NAME = /^Ignore$/i
+const RETURN_ACTION_NAME = /^Return to pending$/i
+const EXCLUDE_ACTION_NAME = /^Exclude$/i
+const OPEN_ACTION_NAME = /^Show in folder$/i
+const OPEN_OUTPUT_ACTION_NAME = /^Show redacted copy in folder$/i
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -273,7 +273,8 @@ describe('ResultsScreen', () => {
     expect(screen.getByText(/Hide them before screen sharing/i)).toBeInTheDocument()
     expect(
       screen.getByRole('button', {
-        name: 'Include finding 12*******89 from secrets.py in redaction plan',
+        name: INCLUDE_ACTION_NAME,
+        description: /finding 12\*+89 from secrets\.py/i,
       }),
     ).toBeInTheDocument()
 
@@ -352,7 +353,7 @@ describe('ResultsScreen', () => {
       ]),
     )
 
-    await user.click(screen.getByRole('button', { name: /1 confirmed findings/i }))
+    await user.click(screen.getByRole('button', { name: /1 Confirmed/i }))
 
     expect(screen.getByText('tier-a-value')).toBeInTheDocument()
     expect(screen.queryByText('tier-b-value')).not.toBeInTheDocument()
@@ -426,8 +427,12 @@ describe('ResultsScreen', () => {
     expect(screen.queryByText('ssn-preview')).not.toBeInTheDocument()
 
     await user.selectOptions(screen.getByLabelText('Detector'), 'all')
-    await user.click(screen.getByRole('button', { name: /Ignore finding key-preview/i }))
-    await user.click(screen.getByRole('button', { name: /Include finding ssn-preview/i }))
+    await user.click(
+      screen.getByRole('button', { name: IGNORE_ACTION_NAME, description: /key-preview/i }),
+    )
+    await user.click(
+      screen.getByRole('button', { name: INCLUDE_ACTION_NAME, description: /ssn-preview/i }),
+    )
 
     await user.selectOptions(screen.getByLabelText('Remediation status'), 'included')
     expect(screen.getByText('ssn-preview')).toBeInTheDocument()
@@ -456,9 +461,16 @@ describe('ResultsScreen', () => {
       ]),
     )
 
-    await user.click(screen.getByRole('button', { name: /Include finding included-preview/i }))
-    await user.click(screen.getByRole('button', { name: /Ignore finding ignored-preview/i }))
-    await user.click(screen.getByRole('button', { name: /2 decided findings/i }))
+    await user.click(
+      screen.getByRole('button', {
+        name: INCLUDE_ACTION_NAME,
+        description: /included-preview/i,
+      }),
+    )
+    await user.click(
+      screen.getByRole('button', { name: IGNORE_ACTION_NAME, description: /ignored-preview/i }),
+    )
+    await user.click(screen.getByRole('button', { name: /2 Decided/i }))
 
     expect(screen.getByLabelText('Remediation status')).toHaveValue('decided')
     expect(screen.getByText('included-preview')).toBeInTheDocument()
@@ -524,21 +536,20 @@ describe('ResultsScreen', () => {
         name: 'Include all pending writable Tier A findings across all results (1)',
       }),
     ).toBeInTheDocument()
-    await user.click(
-      screen.getByRole('button', { name: 'Select all visible actionable findings (2)' }),
-    )
+    await user.click(screen.getByRole('button', { name: 'Select all (2)' }))
     expect(
       within(screen.getByRole('region', { name: 'Bulk finding selection' })).getByRole('status'),
     ).toHaveTextContent('2 actionable finding(s) selected')
-    await user.click(
-      screen.getByRole('button', { name: 'Include selected actionable findings (2)' }),
+    const includeSelected = screen.getByRole('button', { name: 'Include (2)' })
+    expect(includeSelected).toHaveAccessibleName('Include (2)')
+    expect(includeSelected).toHaveAccessibleDescription(
+      'Includes the selected actionable findings in the redaction plan.',
     )
+    await user.click(includeSelected)
 
     expect(client.putRemediationPlan).toHaveBeenCalledTimes(1)
     expect(client.putRemediationPlan).toHaveBeenCalledWith('scan-1', ['f1', 'f2'], [], 0)
-    expect(
-      screen.getByRole('button', { name: 'Include selected actionable findings (0)' }),
-    ).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Include (0)' })).toBeDisabled()
     expect(screen.getByRole('region', { name: 'Bulk finding selection' })).toHaveFocus()
   })
 
@@ -553,26 +564,32 @@ describe('ResultsScreen', () => {
 
     const selectionRegion = screen.getByRole('region', { name: 'Bulk finding selection' })
     const selectAllButton = within(selectionRegion).getByRole('button', {
-      name: 'Select all visible actionable findings (2)',
+      name: 'Select all (2)',
     })
     const selectTierAButton = within(selectionRegion).getByRole('button', {
-      name: 'Select visible actionable Tier A findings (1)',
+      name: 'Tier A (1)',
     })
     const selectTierBButton = within(selectionRegion).getByRole('button', {
-      name: 'Select visible actionable Tier B findings (1)',
+      name: 'Tier B (1)',
     })
     expect(selectAllButton).toHaveAttribute('aria-pressed', 'false')
     expect(selectTierAButton).toHaveAttribute('aria-pressed', 'false')
     expect(selectTierBButton).toHaveAttribute('aria-pressed', 'false')
+    expect(selectAllButton).toHaveAccessibleName('Select all (2)')
+    expect(selectAllButton).toHaveAccessibleDescription('Selects all visible actionable findings.')
+    expect(selectTierAButton).toHaveAccessibleName('Tier A (1)')
+    expect(selectTierAButton).toHaveAccessibleDescription(
+      'Selects visible actionable Tier A findings.',
+    )
     expect(
       within(selectionRegion).queryByRole('button', {
-        name: 'Include selected actionable findings (0)',
+        name: 'Include (0)',
       }),
     ).not.toBeInTheDocument()
     expect(
       within(screen.getByRole('group', { name: 'Selected finding plan actions' })).getByRole(
         'button',
-        { name: 'Include selected actionable findings (0)' },
+        { name: 'Include (0)' },
       ),
     ).toBeDisabled()
 
@@ -581,16 +598,19 @@ describe('ResultsScreen', () => {
     expect(screen.getAllByRole('checkbox')[1]).not.toBeChecked()
     expect(
       within(selectionRegion).getByRole('button', {
-        name: 'Unselect visible actionable Tier A findings (1)',
+        name: 'Tier A (1)',
       }),
     ).toHaveAttribute('aria-pressed', 'true')
+    expect(selectTierAButton).toHaveAccessibleDescription(
+      'Unselects visible actionable Tier A findings.',
+    )
     expect(
       within(screen.getByRole('region', { name: 'Bulk finding selection' })).getByRole('status'),
     ).toHaveTextContent('1 actionable finding(s) selected')
 
     await user.click(
       within(selectionRegion).getByRole('button', {
-        name: 'Unselect visible actionable Tier A findings (1)',
+        name: 'Tier A (1)',
       }),
     )
     for (const checkbox of screen.getAllByRole('checkbox')) expect(checkbox).not.toBeChecked()
@@ -599,23 +619,23 @@ describe('ResultsScreen', () => {
     for (const checkbox of screen.getAllByRole('checkbox')) expect(checkbox).toBeChecked()
     expect(
       within(selectionRegion).getByRole('button', {
-        name: 'Unselect all visible actionable findings (2)',
+        name: 'Select all (2)',
       }),
     ).toHaveAttribute('aria-pressed', 'true')
     expect(
       within(selectionRegion).getByRole('button', {
-        name: 'Unselect visible actionable Tier A findings (1)',
+        name: 'Tier A (1)',
       }),
     ).toHaveAttribute('aria-pressed', 'true')
     expect(
       within(selectionRegion).getByRole('button', {
-        name: 'Unselect visible actionable Tier B findings (1)',
+        name: 'Tier B (1)',
       }),
     ).toHaveAttribute('aria-pressed', 'true')
 
     await user.click(
       within(selectionRegion).getByRole('button', {
-        name: 'Unselect visible actionable Tier B findings (1)',
+        name: 'Tier B (1)',
       }),
     )
     expect(screen.getAllByRole('checkbox')[0]).toBeChecked()
@@ -638,17 +658,22 @@ describe('ResultsScreen', () => {
       ]),
     )
 
-    await user.click(screen.getByRole('button', { name: /Include finding included-preview/i }))
-    await user.click(screen.getByRole('button', { name: /Ignore finding ignored-preview/i }))
+    await user.click(
+      screen.getByRole('button', {
+        name: INCLUDE_ACTION_NAME,
+        description: /included-preview/i,
+      }),
+    )
+    await user.click(
+      screen.getByRole('button', { name: IGNORE_ACTION_NAME, description: /ignored-preview/i }),
+    )
     expect(
       screen.queryByRole('checkbox', { name: /Select finding ignored-preview/i }),
     ).not.toBeInTheDocument()
-    await user.click(
-      screen.getByRole('button', { name: 'Select all visible actionable findings (2)' }),
-    )
+    await user.click(screen.getByRole('button', { name: 'Select all (2)' }))
     await user.click(
       screen.getByRole('button', {
-        name: 'Exclude selected included finding from redaction plan (1)',
+        name: 'Exclude (1)',
       }),
     )
 
@@ -656,7 +681,7 @@ describe('ResultsScreen', () => {
     expect(screen.getByText('Ignored')).toBeInTheDocument()
     expect(
       screen.getByRole('button', {
-        name: 'Exclude selected included findings from redaction plan (0)',
+        name: 'Exclude (0)',
       }),
     ).toBeDisabled()
     expect(
@@ -686,18 +711,22 @@ describe('ResultsScreen', () => {
       ]),
     )
 
-    await user.click(screen.getByRole('button', { name: /Ignore finding ignored-a/i }))
-    await user.click(screen.getByRole('button', { name: /Ignore finding ignored-b/i }))
+    await user.click(
+      screen.getByRole('button', { name: IGNORE_ACTION_NAME, description: /ignored-a/i }),
+    )
+    await user.click(
+      screen.getByRole('button', { name: IGNORE_ACTION_NAME, description: /ignored-b/i }),
+    )
 
     const selectionRegion = screen.getByRole('region', { name: 'Bulk finding selection' })
     const selectAll = within(selectionRegion).getByRole('button', {
-      name: 'Select all visible actionable findings (2)',
+      name: 'Select all (2)',
     })
     const selectTierA = within(selectionRegion).getByRole('button', {
-      name: 'Select visible actionable Tier A findings (1)',
+      name: 'Tier A (1)',
     })
     const selectTierB = within(selectionRegion).getByRole('button', {
-      name: 'Select visible actionable Tier B findings (1)',
+      name: 'Tier B (1)',
     })
 
     await user.click(selectAll)
@@ -708,7 +737,7 @@ describe('ResultsScreen', () => {
 
     await user.click(
       within(selectionRegion).getByRole('button', {
-        name: 'Unselect all visible actionable findings (2)',
+        name: 'Select all (2)',
       }),
     )
     await user.click(selectTierA)
@@ -874,7 +903,7 @@ describe('ResultsScreen', () => {
     const user = userEvent.setup()
     renderResults(makeResult([makeFinding()]))
 
-    await user.click(screen.getByRole('button', { name: /Include finding .* in redaction plan/i }))
+    await user.click(screen.getByRole('button', { name: INCLUDE_ACTION_NAME }))
 
     expect(await screen.findByText('Included')).toBeInTheDocument()
     expect(screen.getByText('12*******89')).toHaveClass('finding__value--redacted')
@@ -922,13 +951,17 @@ describe('ResultsScreen', () => {
       ]),
     )
 
-    await user.click(screen.getByRole('button', { name: /Ignore finding first-preview/i }))
+    await user.click(
+      screen.getByRole('button', { name: IGNORE_ACTION_NAME, description: /first-preview/i }),
+    )
 
-    expect(screen.getByRole('button', { name: /Ignore finding first-preview/i })).toBeDisabled()
-    expect(screen.getByRole('button', { name: /Ignore finding second-preview/i })).toBeEnabled()
     expect(
-      screen.getByRole('button', { name: 'Select all visible actionable findings (2)' }),
+      screen.getByRole('button', { name: IGNORE_ACTION_NAME, description: /first-preview/i }),
+    ).toBeDisabled()
+    expect(
+      screen.getByRole('button', { name: IGNORE_ACTION_NAME, description: /second-preview/i }),
     ).toBeEnabled()
+    expect(screen.getByRole('button', { name: 'Select all (2)' })).toBeEnabled()
     expect(screen.getByRole('button', { name: 'Export JSON' })).toHaveClass(
       'btn-export--quiet-disabled',
     )
@@ -952,11 +985,15 @@ describe('ResultsScreen', () => {
     )
     await user.selectOptions(screen.getByLabelText('Remediation status'), 'pending')
 
-    await user.click(screen.getByRole('button', { name: /Include finding pending-one/i }))
+    await user.click(
+      screen.getByRole('button', { name: INCLUDE_ACTION_NAME, description: /pending-one/i }),
+    )
     await waitFor(() => expect(screen.queryByText('pending-one')).not.toBeInTheDocument())
     expect(screen.getByText('pending-two').closest('li')).toHaveFocus()
 
-    await user.click(screen.getByRole('button', { name: /Ignore finding pending-two/i }))
+    await user.click(
+      screen.getByRole('button', { name: IGNORE_ACTION_NAME, description: /pending-two/i }),
+    )
     await waitFor(() => expect(screen.queryByText('pending-two')).not.toBeInTheDocument())
     expect(screen.getByText('pending-three').closest('li')).toHaveFocus()
   })
@@ -969,11 +1006,17 @@ describe('ResultsScreen', () => {
         makeFinding({ id: 'f2', redacted_preview: 'included-two' }),
       ]),
     )
-    await user.click(screen.getByRole('button', { name: /Include finding included-one/i }))
-    await user.click(screen.getByRole('button', { name: /Include finding included-two/i }))
+    await user.click(
+      screen.getByRole('button', { name: INCLUDE_ACTION_NAME, description: /included-one/i }),
+    )
+    await user.click(
+      screen.getByRole('button', { name: INCLUDE_ACTION_NAME, description: /included-two/i }),
+    )
     await user.selectOptions(screen.getByLabelText('Remediation status'), 'included')
 
-    await user.click(screen.getByRole('button', { name: /Exclude finding included-one/i }))
+    await user.click(
+      screen.getByRole('button', { name: EXCLUDE_ACTION_NAME, description: /included-one/i }),
+    )
 
     await waitFor(() => expect(screen.queryByText('included-one')).not.toBeInTheDocument())
     expect(screen.getByText('included-two').closest('li')).toHaveFocus()
@@ -982,15 +1025,18 @@ describe('ResultsScreen', () => {
   it('gives every repeated finding action file and redacted-value context', () => {
     renderResults(makeResult([makeFinding()]))
 
-    expect(screen.getByRole('button', { name: OPEN_ACTION_NAME })).toHaveAccessibleName(
-      'Show secrets.py in folder for 12*******89',
-    )
-    expect(screen.getByRole('button', { name: INCLUDE_ACTION_NAME })).toHaveAccessibleName(
-      'Include finding 12*******89 from secrets.py in redaction plan',
-    )
-    expect(screen.getByRole('button', { name: IGNORE_ACTION_NAME })).toHaveAccessibleName(
-      'Ignore finding 12*******89 from secrets.py',
-    )
+    const openAction = screen.getByRole('button', { name: OPEN_ACTION_NAME })
+    const includeAction = screen.getByRole('button', { name: INCLUDE_ACTION_NAME })
+    const ignoreAction = screen.getByRole('button', { name: IGNORE_ACTION_NAME })
+
+    expect(openAction).toHaveAccessibleName('Show in folder')
+    expect(includeAction).toHaveAccessibleName('Include in redaction plan')
+    expect(ignoreAction).toHaveAccessibleName('Ignore')
+    for (const action of [openAction, includeAction, ignoreAction]) {
+      expect(action).toHaveAccessibleDescription(
+        'For finding 12*******89 from secrets.py. Full path: C:\\project\\secrets.py.',
+      )
+    }
   })
 
   it('hands an expired session back to the setup workflow', async () => {
@@ -1184,7 +1230,9 @@ describe('ResultsScreen', () => {
       '0 remaining',
     )
     expect(screen.getByText('Review before sharing.')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: OPEN_OUTPUT_ACTION_NAME })).toBeInTheDocument()
+    const openOutput = screen.getByRole('button', { name: OPEN_OUTPUT_ACTION_NAME })
+    expect(openOutput).toHaveAccessibleName('Show redacted copy in folder')
+    expect(openOutput).toHaveAccessibleDescription('secrets-auto-redacted-copy.py')
   })
 
   it('requires explicit confirmation before replacing original files', async () => {
@@ -2256,7 +2304,8 @@ describe('ResultsScreen', () => {
     )
     await user.click(
       screen.getByRole('button', {
-        name: /Include finding EM\*+13 .* in redaction plan/i,
+        name: INCLUDE_ACTION_NAME,
+        description: /finding EM\*+13 from custom-rule-test-data\.txt/i,
       }),
     )
 
