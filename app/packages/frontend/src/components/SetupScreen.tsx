@@ -905,9 +905,6 @@ export default function SetupScreen({ onSubmit, onRequestChange, initial }: Setu
                   className="setup-secondary-button btn-add"
                   onClick={addTarget}
                   disabled={Boolean(targetDraftError) || targetLimitReached}
-                  aria-disabled={
-                    !targetValue.trim() || Boolean(targetDraftError) || targetLimitReached
-                  }
                 >
                   Add
                 </button>
