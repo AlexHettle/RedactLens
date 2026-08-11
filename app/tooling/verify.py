@@ -47,6 +47,11 @@ def _checks() -> list[Check]:
             300,
         ),
         Check(
+            "Browser accessibility (Playwright + axe)",
+            [npm, "run", "test:a11y:e2e", "--prefix", FRONTEND],
+            600,
+        ),
+        Check(
             "Live browser workflow (Phase 9)",
             [sys.executable, "tooling/scripts/e2e_phase9.py"],
             300,

@@ -407,16 +407,14 @@ button {
   font-size: 12.5px;
   font-weight: 650;
   cursor: pointer;
-  transition:
-    background-color 150ms ease,
-    border-color 150ms ease,
-    color 150ms ease;
+  transition: transform 150ms ease;
 }
 
 .setup-secondary-button:hover:not(:disabled):not([aria-disabled='true']) {
   border-color: var(--action-accent);
   background: var(--action-accent);
   color: var(--on-action-accent);
+  transform: translateY(-1px);
 }
 
 .setup-secondary-button:focus-visible {
@@ -3180,6 +3178,7 @@ button {
   .titlebar__contrast-track,
   .titlebar__theme,
   .titlebar__theme svg,
+  .setup-secondary-button,
   .ondevice-pill,
   .ondevice-tooltip,
   .seg::before,
@@ -3196,6 +3195,9 @@ button {
     transition: none;
   }
   .titlebar__theme:hover svg {
+    transform: none;
+  }
+  .setup-secondary-button:hover:not(:disabled):not([aria-disabled='true']) {
     transform: none;
   }
   .ondevice-help:hover .ondevice-pill,

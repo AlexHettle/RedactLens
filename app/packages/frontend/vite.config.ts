@@ -38,6 +38,7 @@ export default defineConfig({
     headers: securityHeaders,
   },
   test: {
+    include: ['src/**/*.test.{ts,tsx}', 'vite.config.test.ts'],
     environment: 'jsdom',
     globals: true,
     setupFiles: './src/test/setup.ts',

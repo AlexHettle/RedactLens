@@ -13,6 +13,8 @@
     "format": "prettier --write . ../../tooling/scripts/e2e_phase9_browser.mjs ../../tooling/scripts/e2e_phase9_browser_errors.mjs ../../tooling/scripts/e2e_phase9_browser_errors.test.mjs",
     "format:check": "prettier --check . ../../tooling/scripts/e2e_phase9_browser.mjs ../../tooling/scripts/e2e_phase9_browser_errors.mjs ../../tooling/scripts/e2e_phase9_browser_errors.test.mjs",
     "test": "vitest run",
+    "test:a11y:e2e": "npm run build && playwright test",
+    "test:a11y:e2e:headed": "npm run build && playwright test --headed",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -20,7 +22,9 @@
     "react-dom": "^19.2.7"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.12.1",
     "@eslint/js": "^9.39.4",
+    "@playwright/test": "^1.62.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",

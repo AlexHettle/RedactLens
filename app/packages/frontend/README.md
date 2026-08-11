@@ -37,14 +37,19 @@ Run these commands from the application root (`app/`):
 
 ```powershell
 npm test --prefix packages\frontend
+npm run test:a11y:e2e --prefix packages\frontend
 npm run build --prefix packages\frontend
 npm run lint --prefix packages\frontend
 npm run format:check --prefix packages\frontend
 ```
 
 Vitest and Testing Library cover component behavior, API recovery, keyboard workflows, privacy-safe
-exports, large result sets, and accessibility states. The repository-level `tooling/verify.py` command also
-runs the production browser workflow against the real frontend build and FastAPI service.
+exports, large result sets, and accessibility states. Playwright with `@axe-core/playwright` adds a
+real-Chrome accessibility gate for setup, scanning, results, revealed values, errors, remediation,
+repeated action names, zoom/reflow, WCAG text spacing, forced colors, and reduced motion. It uses
+deterministic loopback API fixtures and the installed Chrome channel, so no Playwright-managed browser
+download is required. The repository-level `tooling/verify.py` command runs both browser suites as
+required CI checks.
 
 ## Key files
 
@@ -54,5 +59,7 @@ runs the production browser workflow against the real frontend build and FastAPI
 - `src/results/` contains deterministic triage, path projection, and report construction.
 - `src/accessibility.test.tsx` verifies axe-covered states, contrast tokens, focus visibility,
   reduced motion, and forced-colors rules.
+- `e2e/accessibility.spec.ts` verifies the same safeguards in a real Chrome accessibility tree and
+  rendering engine.
 - `vite.config.ts` fixes the development port and applies anti-framing headers in development and
   preview builds.
