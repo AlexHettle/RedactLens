@@ -70,11 +70,21 @@ export function IconSearch(props: IconProps) {
   )
 }
 
-export function IconSparkle(props: IconProps) {
+export function IconCpu(props: IconProps) {
   return (
     <Icon {...props}>
-      <path d="M12 3v3M12 18v3M3 12h3M18 12h3M6 6l2 2M16 16l2 2M18 6l-2 2M8 16l-2 2" />
-      <circle cx="12" cy="12" r="3.2" />
+      <rect x="6" y="6" width="12" height="12" rx="2" />
+      <rect x="9" y="9" width="6" height="6" rx="1" />
+      <path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4" />
+    </Icon>
+  )
+}
+
+export function IconAlertTriangle(props: IconProps) {
+  return (
+    <Icon strokeWidth={2.2} {...props}>
+      <path d="M10.3 3.6 2.7 17a2 2 0 0 0 1.7 3h15.2a2 2 0 0 0 1.7-3L13.7 3.6a2 2 0 0 0-3.4 0Z" />
+      <path d="M12 9v4M12 17h.01" />
     </Icon>
   )
 }

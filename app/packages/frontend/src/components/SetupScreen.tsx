@@ -17,8 +17,10 @@ import type {
 } from '../types'
 import BrowseButton from './BrowseButton'
 import {
+  IconAlertTriangle,
   IconCard,
   IconCheck,
+  IconCpu,
   IconFolder,
   IconInfo,
   IconKey,
@@ -26,7 +28,6 @@ import {
   IconPencil,
   IconPerson,
   IconSearch,
-  IconSparkle,
 } from './Icons'
 
 interface SetupScreenProps {
@@ -734,7 +735,7 @@ export default function SetupScreen({ onSubmit, onRequestChange, initial }: Setu
             >
               <span className="ai-card__lead">
                 <span className="ai-card__chip" aria-hidden="true">
-                  <IconSparkle size={18} />
+                  <IconCpu size={18} />
                 </span>
                 <span>
                   <span className="ai-card__title">On-device AI for fuzzier matches</span>
@@ -923,7 +924,7 @@ export default function SetupScreen({ onSubmit, onRequestChange, initial }: Setu
               )}
               {descriptionNeedsAiWarning && (
                 <p role="alert" className="target-box__warn">
-                  <IconSparkle size={12} />
+                  <IconAlertTriangle size={13} />
                   {descriptionTargetWarning(selectedModelAvailable)}
                 </p>
               )}
