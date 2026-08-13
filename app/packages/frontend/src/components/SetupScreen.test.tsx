@@ -844,10 +844,16 @@ describe('SetupScreen', () => {
     render(<SetupScreen onSubmit={vi.fn()} />)
     await user.click(screen.getByRole('radio', { name: /Plain-English description/i }))
 
-    expect(screen.getByRole('alert')).toHaveTextContent(/needs local ai turned on/i)
+    const warning = screen.getByRole('alert')
+    const warningRegion = warning.closest('.target-box__ai-warning')
+    expect(warning).toHaveTextContent(/needs local ai turned on/i)
+    expect(warningRegion).toHaveAttribute('data-visible', 'true')
+    expect(warningRegion).not.toHaveAttribute('aria-hidden', 'true')
 
     await user.click(screen.getByRole('radio', { name: 'Exact value' }))
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    expect(warningRegion).toHaveAttribute('data-visible', 'false')
+    expect(warningRegion).toHaveAttribute('aria-hidden', 'true')
   })
 
   it('clears the warning once local AI is actually on', async () => {

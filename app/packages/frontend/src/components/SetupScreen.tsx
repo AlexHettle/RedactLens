@@ -922,12 +922,21 @@ export default function SetupScreen({ onSubmit, onRequestChange, initial }: Setu
                   You have reached the limit of 100 custom targets. Remove one to add another.
                 </p>
               )}
-              {descriptionNeedsAiWarning && (
-                <p role="alert" className="target-box__warn">
-                  <IconAlertTriangle size={13} />
-                  {descriptionTargetWarning(selectedModelAvailable)}
-                </p>
-              )}
+              <div
+                className="target-box__ai-warning"
+                data-visible={descriptionNeedsAiWarning}
+                aria-hidden={!descriptionNeedsAiWarning}
+              >
+                <div className="target-box__ai-warning-inner">
+                  <p
+                    role={descriptionNeedsAiWarning ? 'alert' : undefined}
+                    className="target-box__warn"
+                  >
+                    <IconAlertTriangle size={13} />
+                    {descriptionTargetWarning(selectedModelAvailable)}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>

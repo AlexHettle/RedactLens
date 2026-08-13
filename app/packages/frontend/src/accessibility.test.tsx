@@ -420,6 +420,24 @@ describe('automated accessibility checks', () => {
     expect(forcedSelected).toContain('color: HighlightText')
   })
 
+  it('animates the local AI warning height while honoring reduced motion', () => {
+    const warning = ruleBlock('.target-box__ai-warning')
+    const visibleWarning = ruleBlock(".target-box__ai-warning[data-visible='true']")
+    const warningInner = ruleBlock('.target-box__ai-warning-inner')
+    const reducedMotion = appCss.slice(appCss.indexOf('@media (prefers-reduced-motion: reduce)'))
+
+    expect(warning).toContain('grid-template-rows: 0fr')
+    expect(warning).toContain('grid-template-rows 240ms')
+    expect(warning).toContain('opacity 160ms ease')
+    expect(visibleWarning).toContain('grid-template-rows: 1fr')
+    expect(visibleWarning).toContain('opacity: 1')
+    expect(warningInner).toContain('overflow: hidden')
+    expect(warningInner).toContain('transform: translateY(-3px)')
+    expect(reducedMotion).toContain('.target-box__ai-warning')
+    expect(reducedMotion).toContain('.target-box__ai-warning-inner')
+    expect(reducedMotion).toContain('transition: none')
+  })
+
   it('animates the high contrast hover treatment while honoring reduced motion', () => {
     const control = ruleBlock('.titlebar__contrast')
     const hover = ruleBlock('.titlebar__contrast:hover')
