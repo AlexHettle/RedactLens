@@ -911,8 +911,7 @@ describe('SetupScreen', () => {
     const input = screen.getByLabelText(/Value or description/i)
     const exactValue = screen.getByRole('radio', { name: 'Exact value' })
     const add = screen.getByRole('button', { name: 'Add' })
-    expect(add).toBeEnabled()
-    expect(add).not.toHaveAttribute('aria-disabled')
+    expect(add).toBeDisabled()
 
     await user.type(input, 'keyboard-rule')
     expect(add).toBeEnabled()
@@ -926,7 +925,7 @@ describe('SetupScreen', () => {
     expect(screen.getByText('Added exact-value target.')).toBeInTheDocument()
   })
 
-  it('reports the existing validation error when Add is activated with an empty field', async () => {
+  it('disables Add without a meaningful rule value', async () => {
     vi.mocked(client.getDetectors).mockResolvedValue(DETECTORS)
     vi.mocked(client.getHealth).mockResolvedValue({ status: 'ok', ollama_available: false })
     const user = userEvent.setup()
@@ -935,16 +934,17 @@ describe('SetupScreen', () => {
 
     const input = screen.getByLabelText(/Value or description/i)
     const add = screen.getByRole('button', { name: 'Add' })
+    expect(add).toBeDisabled()
+    expect(input).not.toHaveAttribute('aria-invalid')
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+
+    await user.type(input, '   ')
+    expect(add).toBeDisabled()
+    await user.keyboard('{Enter}')
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+
+    await user.type(input, 'passport number')
     expect(add).toBeEnabled()
-    expect(add).not.toHaveAttribute('aria-disabled')
-
-    await user.click(add)
-
-    expect(screen.getByRole('alert')).toHaveTextContent(
-      'Enter an exact value or description before adding this rule.',
-    )
-    expect(input).toHaveAttribute('aria-invalid', 'true')
-    expect(input).toHaveFocus()
   })
 
   it('explains and enforces the per-target character limit before adding', async () => {

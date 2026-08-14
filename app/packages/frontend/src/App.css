@@ -1272,12 +1272,6 @@ button {
   margin-left: auto;
 }
 
-.btn-add[aria-disabled='true'] {
-  border-color: var(--disabled-border);
-  background: var(--disabled-bg);
-  color: var(--disabled-ink);
-}
-
 .target-box__warn {
   margin: 10px 0 0;
   font-size: 11.5px;

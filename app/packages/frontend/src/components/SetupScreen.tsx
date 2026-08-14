@@ -419,6 +419,8 @@ export default function SetupScreen({ onSubmit, onRequestChange, initial }: Setu
         ? 'This setup contains a custom target longer than 8,192 characters. Shorten or remove it before scanning.'
         : ''
   const targetLimitReached = targets.length >= MAX_USER_TARGETS
+  const targetAddDisabled =
+    targetValue.trim().length === 0 || Boolean(targetDraftError) || targetLimitReached
 
   function scanRequest(nextTargets: UserTarget[] = targets): ScanRequest {
     return {
@@ -518,11 +520,7 @@ export default function SetupScreen({ onSubmit, onRequestChange, initial }: Setu
 
   function addTarget() {
     const value = targetValue.trim()
-    if (!value) {
-      setTargetActionError('Enter an exact value or description before adding this rule.')
-      targetInputRef.current?.focus()
-      return
-    }
+    if (!value) return
     if (textLength(value) > MAX_USER_TARGET_LENGTH) {
       setTargetActionError(
         'Custom targets can be up to 8,192 characters. Shorten this value before adding it.',
@@ -554,7 +552,7 @@ export default function SetupScreen({ onSubmit, onRequestChange, initial }: Setu
   function onTargetKeyDown(event: KeyboardEvent<HTMLInputElement>) {
     if (event.key === 'Enter') {
       event.preventDefault()
-      addTarget()
+      if (!targetAddDisabled) addTarget()
     }
   }
 
@@ -905,7 +903,7 @@ export default function SetupScreen({ onSubmit, onRequestChange, initial }: Setu
                   type="button"
                   className="setup-secondary-button btn-add"
                   onClick={addTarget}
-                  disabled={Boolean(targetDraftError) || targetLimitReached}
+                  disabled={targetAddDisabled}
                 >
                   Add
                 </button>

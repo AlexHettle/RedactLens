@@ -92,19 +92,19 @@ async function includeFirstFinding(page: Page): Promise<Locator> {
   return review
 }
 
-test('axe scans setup and its actionable validation error', async ({ page }) => {
+test('axe scans setup and its empty-rule Add state', async ({ page }) => {
   await openSetup(page)
   await expectNoAxeViolations(page, 'setup')
 
   const add = page.getByRole('button', { name: 'Add' })
+  const input = page.getByRole('textbox', { name: 'Value or description' })
+  await expect(add).toBeDisabled()
+  await input.fill('   ')
+  await expect(add).toBeDisabled()
+  await expect(page.getByRole('alert')).toHaveCount(0)
+  await input.fill('passport number')
   await expect(add).toBeEnabled()
-  await add.click()
-  const error = page.getByRole('alert').filter({
-    hasText: 'Enter an exact value or description before adding this rule.',
-  })
-  await expect(error).toBeVisible()
-  await expect(page.getByRole('textbox', { name: 'Value or description' })).toBeFocused()
-  await expectNoAxeViolations(page, 'setup validation error')
+  await expectNoAxeViolations(page, 'setup Add states')
 })
 
 test('axe scans the active scanning state and honors reduced motion', async ({ page }) => {
@@ -221,9 +221,10 @@ test('preserves boundaries and focus in forced-colors mode', async ({ page }) =>
   await openSetup(page)
 
   expect(await page.evaluate(() => matchMedia('(forced-colors: active)').matches)).toBe(true)
-  const add = page.getByRole('button', { name: 'Add' })
-  await add.focus()
-  const focusStyle = await add.evaluate((element) => {
+  await expect(page.getByRole('button', { name: 'Add' })).toBeDisabled()
+  const contrastSwitch = page.getByRole('switch', { name: 'High contrast' })
+  await contrastSwitch.focus()
+  const focusStyle = await contrastSwitch.evaluate((element) => {
     const style = getComputedStyle(element)
     return { outlineStyle: style.outlineStyle, outlineWidth: style.outlineWidth }
   })
