@@ -438,6 +438,24 @@ describe('automated accessibility checks', () => {
     expect(reducedMotion).toContain('transition: none')
   })
 
+  it('subtly animates Add becoming available without hover motion', () => {
+    const enabledAdd = ruleBlock('.btn-add:not(:disabled)')
+    const hover = ruleBlock(
+      ".setup-secondary-button.btn-add:hover:not(:disabled):not([aria-disabled='true'])",
+    )
+    const reducedMotion = appCss.slice(appCss.indexOf('@media (prefers-reduced-motion: reduce)'))
+
+    expect(enabledAdd).toContain('animation: add-ready 200ms')
+    expect(hover).toContain('transform: none')
+    expect(hover).not.toContain('box-shadow')
+    expect(appCss).toContain('@keyframes add-ready')
+    expect(appCss).toContain('transform: scale(0.985)')
+    expect(appCss).toContain('transform: scale(1.01)')
+    expect(appCss).toContain('var(--accent) 9%')
+    expect(reducedMotion).toContain('.btn-add')
+    expect(reducedMotion).toContain('animation: none')
+  })
+
   it('animates the high contrast hover treatment while honoring reduced motion', () => {
     const control = ruleBlock('.titlebar__contrast')
     const hover = ruleBlock('.titlebar__contrast:hover')
