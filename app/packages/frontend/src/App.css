@@ -586,6 +586,19 @@ button {
   font: 12px var(--mono);
 }
 
+/* Chromium otherwise sizes its native number stepper from the 12px text line,
+   which crowds both arrows into a clipped-looking square in WebView2. */
+.scan-options__grid input[type='number'] {
+  padding-right: 6px;
+}
+
+.scan-options__grid input[type='number']::-webkit-inner-spin-button {
+  width: 18px;
+  height: 26px;
+  margin: 0 2px 0 6px;
+  cursor: pointer;
+}
+
 .scan-options__grid input:focus {
   border-color: var(--accent-2);
 }

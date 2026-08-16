@@ -438,6 +438,17 @@ describe('automated accessibility checks', () => {
     expect(reducedMotion).toContain('transition: none')
   })
 
+  it('keeps native numeric steppers clear of rounded input edges', () => {
+    const numberInput = ruleBlock(".scan-options__grid input[type='number']")
+    const stepper = ruleBlock(".scan-options__grid input[type='number']::-webkit-inner-spin-button")
+
+    expect(numberInput).toContain('padding-right: 6px')
+    expect(stepper).toContain('width: 18px')
+    expect(stepper).toContain('height: 26px')
+    expect(stepper).toContain('margin: 0 2px 0 6px')
+    expect(stepper).not.toContain('appearance: none')
+  })
+
   it('subtly animates Add becoming available without hover motion', () => {
     const enabledAdd = ruleBlock('.btn-add:not(:disabled)')
     const hover = ruleBlock(
