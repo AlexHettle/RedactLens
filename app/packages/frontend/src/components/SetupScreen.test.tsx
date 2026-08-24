@@ -647,6 +647,12 @@ describe('SetupScreen', () => {
     await user.click(screen.getByText('Advanced scan options'))
 
     const modelSelect = await screen.findByRole('combobox', { name: 'Local AI model' })
+    const modelRow = modelSelect.closest('.scan-options__model-row')
+    expect(modelRow).toContainElement(screen.getByRole('button', { name: 'Refresh models' }))
+    expect(modelRow?.previousElementSibling).toHaveTextContent('Local AI model')
+    expect(modelSelect).toHaveAttribute('aria-expanded', 'false')
+    await user.click(modelSelect)
+    expect(modelSelect).toHaveAttribute('aria-expanded', 'true')
     expect(
       screen.getByRole('option', { name: /qwen3-coder:30b — 18.6 GB — Recommended/i }),
     ).toBeInTheDocument()
@@ -665,7 +671,9 @@ describe('SetupScreen', () => {
       localAiStatusMessages.filter((element) => element.matches('.visually-hidden[aria-live]')),
     ).toHaveLength(1)
 
-    await user.selectOptions(modelSelect, 'llama3.2:3b')
+    await user.click(screen.getByRole('option', { name: /llama3.2:3b — 2.1 GB/i }))
+    expect(modelSelect).toHaveValue('llama3.2:3b')
+    expect(modelSelect).toHaveAttribute('aria-expanded', 'false')
     await user.click(screen.getByRole('switch', { name: /On-device AI/i }))
     await user.click(screen.getByRole('button', { name: /Scan this location/i }))
 
@@ -676,6 +684,39 @@ describe('SetupScreen', () => {
         ollama_model: 'llama3.2:3b',
       }),
     )
+  })
+
+  it('supports keyboard navigation in the local model picker', async () => {
+    vi.mocked(client.getDetectors).mockResolvedValue(DETECTORS)
+    vi.mocked(client.getHealth).mockResolvedValue({
+      status: 'ok',
+      ollama_available: true,
+      ollama_status: 'ready',
+      ollama_model: 'qwen3-coder:30b',
+      ollama_models: [
+        { name: 'qwen3-coder:30b', size_bytes: 18_600_000_000 },
+        { name: 'llama3.2:3b', size_bytes: 2_100_000_000 },
+      ],
+    })
+    const user = userEvent.setup()
+
+    render(<SetupScreen onSubmit={vi.fn()} />)
+    await user.click(screen.getByText('Advanced scan options'))
+    const modelSelect = await screen.findByRole('combobox', { name: 'Local AI model' })
+
+    modelSelect.focus()
+    await user.keyboard('{ArrowDown}')
+    expect(modelSelect).toHaveAttribute('aria-expanded', 'true')
+    expect(modelSelect).toHaveAttribute('aria-activedescendant', 'ollama-model-option-0')
+
+    await user.tab()
+    expect(modelSelect).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.getByRole('button', { name: 'Refresh models' })).toHaveFocus()
+    await user.tab({ shift: true })
+
+    await user.keyboard('{ArrowDown}{ArrowDown}{Enter}')
+    expect(modelSelect).toHaveValue('llama3.2:3b')
+    expect(modelSelect).toHaveAttribute('aria-expanded', 'false')
   })
 
   it('lets the user remedy a missing recommended model by choosing an installed model', async () => {
@@ -695,10 +736,9 @@ describe('SetupScreen', () => {
     expect(screen.getAllByText(/qwen3-coder:30b is not installed locally yet/i)).not.toHaveLength(0)
 
     await user.click(screen.getByText('Advanced scan options'))
-    await user.selectOptions(
-      screen.getByRole('combobox', { name: 'Local AI model' }),
-      'llama3.2:3b',
-    )
+    const modelSelect = screen.getByRole('combobox', { name: 'Local AI model' })
+    await user.click(modelSelect)
+    await user.click(screen.getByRole('option', { name: /llama3.2:3b — 2.1 GB/i }))
 
     expect(toggle).toBeEnabled()
     expect(screen.queryByRole('heading', { name: 'Download the local AI model' })).toBeNull()
@@ -726,6 +766,7 @@ describe('SetupScreen', () => {
     render(<SetupScreen onSubmit={vi.fn()} />)
     await user.click(screen.getByText('Advanced scan options'))
     await user.click(await screen.findByRole('button', { name: 'Refresh models' }))
+    await user.click(screen.getByRole('combobox', { name: 'Local AI model' }))
 
     expect(
       await screen.findByRole('option', { name: /qwen3-coder:30b — 18.6 GB — Recommended/i }),

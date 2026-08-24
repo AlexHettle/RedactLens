@@ -16,6 +16,7 @@ import type {
   UserTarget,
 } from '../types'
 import BrowseButton from './BrowseButton'
+import LocalModelPicker from './LocalModelPicker'
 import {
   IconAlertTriangle,
   IconCard,
@@ -95,12 +96,6 @@ function storedOllamaModel(): string | null {
   } catch {
     return null
   }
-}
-
-function formatModelSize(sizeBytes: number | null): string {
-  if (sizeBytes === null) return 'size unavailable'
-  if (sizeBytes < 1_000_000_000) return `${(sizeBytes / 1_000_000).toFixed(0)} MB`
-  return `${(sizeBytes / 1_000_000_000).toFixed(1)} GB`
 }
 
 function modelIsAvailable(health: HealthResponse, modelName: string): boolean {
@@ -484,7 +479,6 @@ export default function SetupScreen({ onSubmit, onRequestChange, initial }: Setu
       : 'unavailable'
   const showOllamaSetup = health?.status === 'ok' && ollamaStatus !== 'ready'
   const showRecommendedModelSize = ollamaModel === DEFAULT_OLLAMA_MODEL
-  const selectedModelIsListed = installedOllamaModels.some((model) => model.name === ollamaModel)
 
   function checkOllamaAgain() {
     setHealthCheckCycle((cycle) => cycle + 1)
@@ -976,38 +970,32 @@ export default function SetupScreen({ onSubmit, onRequestChange, initial }: Setu
                 </button>
               </div>
               <div className="scan-options__model">
-                <label htmlFor="ollama-model">Local AI model</label>
+                <span id="ollama-model-label">Local AI model</span>
                 <div className="scan-options__model-row">
-                  <select
+                  <LocalModelPicker
                     id="ollama-model"
+                    labelledBy="ollama-model-label"
                     value={ollamaModel}
-                    aria-describedby="ollama-model-help"
+                    describedBy="ollama-model-help"
+                    models={installedOllamaModels}
+                    recommendedModel={DEFAULT_OLLAMA_MODEL}
+                    fallbackLabel={
+                      health === null || healthCheckPending
+                        ? 'Checking installed models…'
+                        : ollamaStatus === 'unavailable'
+                          ? `${ollamaModel} — Ollama unavailable`
+                          : `${ollamaModel} — not installed${
+                              ollamaModel === DEFAULT_OLLAMA_MODEL ? ' — Recommended' : ''
+                            }`
+                    }
                     disabled={
                       health === null || healthCheckPending || installedOllamaModels.length === 0
                     }
-                    onChange={(event) => {
-                      setOllamaModel(event.target.value)
+                    onChange={(model) => {
+                      setOllamaModel(model)
                       onRequestChange?.()
                     }}
-                  >
-                    {!selectedModelIsListed && (
-                      <option value={ollamaModel} disabled>
-                        {health === null || healthCheckPending
-                          ? 'Checking installed models…'
-                          : ollamaStatus === 'unavailable'
-                            ? `${ollamaModel} — Ollama unavailable`
-                            : `${ollamaModel} — not installed${
-                                ollamaModel === DEFAULT_OLLAMA_MODEL ? ' — Recommended' : ''
-                              }`}
-                      </option>
-                    )}
-                    {installedOllamaModels.map((model) => (
-                      <option key={model.name} value={model.name}>
-                        {model.name} — {formatModelSize(model.size_bytes)}
-                        {model.name === DEFAULT_OLLAMA_MODEL ? ' — Recommended' : ''}
-                      </option>
-                    ))}
-                  </select>
+                  />
                   <button
                     type="button"
                     className="setup-secondary-button"
