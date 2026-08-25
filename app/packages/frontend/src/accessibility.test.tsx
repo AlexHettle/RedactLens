@@ -438,6 +438,17 @@ describe('automated accessibility checks', () => {
     expect(reducedMotion).toContain('transition: none')
   })
 
+  it('reserves one stable grid area for every Ollama startup status', () => {
+    const status = ruleBlock('.ai-setup .ai-setup__startup-status')
+    const message = ruleBlock('.ai-setup__startup-status-message')
+    const current = ruleBlock(".ai-setup__startup-status-message[data-current='true']")
+
+    expect(status).toContain('display: grid')
+    expect(message).toContain('grid-area: 1 / 1')
+    expect(message).toContain('visibility: hidden')
+    expect(current).toContain('visibility: visible')
+  })
+
   it('keeps native numeric steppers clear of rounded input edges', () => {
     const numberInput = ruleBlock(".scan-options__grid input[type='number']")
     const stepper = ruleBlock(".scan-options__grid input[type='number']::-webkit-inner-spin-button")

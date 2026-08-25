@@ -1225,12 +1225,23 @@ button {
 }
 
 .ai-setup .ai-setup__startup-status {
+  min-width: 0;
+  display: grid;
   margin-top: 8px;
   color: var(--ai);
   font-weight: 700;
 }
 
-.ai-setup .ai-setup__startup-status--expired {
+.ai-setup__startup-status-message {
+  grid-area: 1 / 1;
+  visibility: hidden;
+}
+
+.ai-setup__startup-status-message[data-current='true'] {
+  visibility: visible;
+}
+
+.ai-setup .ai-setup__startup-status-message--expired {
   color: var(--ink);
 }
 

@@ -583,6 +583,37 @@ describe('SetupScreen', () => {
     expect(screen.queryByRole('heading', { name: 'Set up local AI' })).toBeNull()
   })
 
+  it('keeps the Ollama startup status region stable while checking again', async () => {
+    vi.mocked(client.getDetectors).mockResolvedValue(DETECTORS)
+    vi.mocked(client.getHealth)
+      .mockResolvedValueOnce({
+        status: 'ok',
+        ollama_available: false,
+        ollama_status: 'unavailable',
+        ollama_model: 'qwen3-coder:30b',
+      })
+      .mockImplementationOnce(() => new Promise(() => {}))
+    const user = userEvent.setup()
+
+    render(<SetupScreen onSubmit={vi.fn()} />)
+
+    const retryMessage = await screen.findByText(/Ollama may still be starting with Windows/i)
+    const startupStatus = retryMessage.closest('[role="status"]')
+    expect(startupStatus).not.toBeNull()
+    if (!startupStatus) throw new Error('Ollama startup status region was not rendered.')
+    expect(startupStatus).toHaveAttribute('data-state', 'retrying')
+    expect(startupStatus.querySelectorAll('.ai-setup__startup-status-message')).toHaveLength(3)
+
+    await user.click(screen.getByRole('button', { name: 'Check again' }))
+
+    await waitFor(() => expect(startupStatus).toHaveAttribute('data-state', 'checking'))
+    expect(startupStatus).toBeInTheDocument()
+    expect(screen.getByText(/Checking whether Ollama is ready/i)).toHaveAttribute(
+      'data-current',
+      'true',
+    )
+  })
+
   it('shows only the model step when Ollama is running without the configured model', async () => {
     vi.mocked(client.getDetectors).mockResolvedValue(DETECTORS)
     vi.mocked(client.getHealth).mockResolvedValue({
@@ -1025,7 +1056,7 @@ describe('SetupScreen', () => {
     await screen.findByRole('checkbox', { name: /Credentials/i })
     await user.type(screen.getByLabelText(/Value or description/i), 'one-more')
 
-    expect(screen.getByRole('status')).toHaveTextContent(/limit of 100 custom targets/i)
+    expect(screen.getByText(/limit of 100 custom targets/i)).toHaveRole('status')
     expect(screen.getByRole('button', { name: 'Add' })).toBeDisabled()
   })
 

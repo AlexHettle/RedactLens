@@ -205,7 +205,6 @@ export default function SetupScreen({ onSubmit, onRequestChange, initial }: Setu
   const [health, setHealth] = useState<HealthResponse | null>(null)
   const [healthCheckPending, setHealthCheckPending] = useState(false)
   const [healthCheckCycle, setHealthCheckCycle] = useState(0)
-  const [ollamaStartupRetryActive, setOllamaStartupRetryActive] = useState(false)
   const [ollamaStartupRetryExpired, setOllamaStartupRetryExpired] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [pickError, setPickError] = useState<string | null>(null)
@@ -258,7 +257,6 @@ export default function SetupScreen({ onSubmit, onRequestChange, initial }: Setu
       if (cancelled) return
       setHealthCheckPending(true)
       if (firstCheck) {
-        setOllamaStartupRetryActive(false)
         setOllamaStartupRetryExpired(false)
       }
 
@@ -273,24 +271,20 @@ export default function SetupScreen({ onSubmit, onRequestChange, initial }: Setu
 
         if (ollamaServiceIsUnavailable(nextHealth)) {
           if (Date.now() < retryDeadline) {
-            setOllamaStartupRetryActive(true)
             retryTimer = window.setTimeout(
               () => void checkHealth(),
               OLLAMA_STARTUP_RETRY_INTERVAL_MS,
             )
           } else {
-            setOllamaStartupRetryActive(false)
             setOllamaStartupRetryExpired(true)
           }
         } else {
-          setOllamaStartupRetryActive(false)
           setOllamaStartupRetryExpired(false)
         }
       } catch {
         if (cancelled) return
         setHealth({ status: 'unreachable', ollama_available: false })
         setUseLlm(false)
-        setOllamaStartupRetryActive(false)
       } finally {
         if (!cancelled) {
           setHealthCheckPending(false)
@@ -479,6 +473,11 @@ export default function SetupScreen({ onSubmit, onRequestChange, initial }: Setu
       : 'unavailable'
   const showOllamaSetup = health?.status === 'ok' && ollamaStatus !== 'ready'
   const showRecommendedModelSize = ollamaModel === DEFAULT_OLLAMA_MODEL
+  const ollamaStartupStatus = healthCheckPending
+    ? 'checking'
+    : ollamaStartupRetryExpired
+      ? 'expired'
+      : 'retrying'
 
   function checkOllamaAgain() {
     setHealthCheckCycle((cycle) => cycle + 1)
@@ -756,20 +755,39 @@ export default function SetupScreen({ onSubmit, onRequestChange, initial }: Setu
                     these steps:
                   </p>
                 )}
-                {ollamaStatus === 'unavailable' && ollamaStartupRetryActive && (
-                  <p className="ai-setup__startup-status" aria-live="polite">
-                    Ollama may still be starting with Windows. RedactLens is checking automatically
-                    for up to two minutes—no repeated clicks needed.
-                  </p>
-                )}
-                {ollamaStatus === 'unavailable' && ollamaStartupRetryExpired && (
-                  <p
-                    className="ai-setup__startup-status ai-setup__startup-status--expired"
+                {ollamaStatus === 'unavailable' && (
+                  <div
+                    className="ai-setup__startup-status"
+                    role="status"
                     aria-live="polite"
+                    aria-atomic="true"
+                    data-state={ollamaStartupStatus}
                   >
-                    RedactLens still can&rsquo;t reach Ollama. Make sure Ollama is open, then choose
-                    Check again. Built-in scanning remains available.
-                  </p>
+                    <span
+                      className="ai-setup__startup-status-message"
+                      data-current={ollamaStartupStatus === 'checking'}
+                      aria-hidden={ollamaStartupStatus !== 'checking'}
+                    >
+                      Checking whether Ollama is ready. This can take a moment during Windows
+                      startup.
+                    </span>
+                    <span
+                      className="ai-setup__startup-status-message"
+                      data-current={ollamaStartupStatus === 'retrying'}
+                      aria-hidden={ollamaStartupStatus !== 'retrying'}
+                    >
+                      Ollama may still be starting with Windows. RedactLens is checking
+                      automatically for up to two minutes—no repeated clicks needed.
+                    </span>
+                    <span
+                      className="ai-setup__startup-status-message ai-setup__startup-status-message--expired"
+                      data-current={ollamaStartupStatus === 'expired'}
+                      aria-hidden={ollamaStartupStatus !== 'expired'}
+                    >
+                      RedactLens still can&rsquo;t reach Ollama. Make sure Ollama is open, then
+                      choose Check again. Built-in scanning remains available.
+                    </span>
+                  </div>
                 )}
                 <ol>
                   {ollamaStatus !== 'model_missing' && (
