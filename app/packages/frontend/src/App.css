@@ -3269,6 +3269,8 @@ button {
 .toast__dismiss {
   width: 28px;
   height: 28px;
+  display: grid;
+  place-items: center;
   flex: none;
   padding: 0;
   border: 1px solid currentColor;
@@ -3276,8 +3278,6 @@ button {
   background: transparent;
   color: inherit;
   cursor: pointer;
-  font-size: 17px;
-  line-height: 1;
 }
 
 /* ---- Desktop layout ------------------------------------------------------------------ */

@@ -12,6 +12,7 @@ import ResultsScreen from './components/ResultsScreen'
 import ScanningScreen from './components/ScanningScreen'
 import SetupScreen from './components/SetupScreen'
 import TitleBar, { type Theme } from './components/TitleBar'
+import { IconX } from './components/Icons'
 import type { PublicScanResult, ScanEvent, ScanRequest } from './types'
 
 type Screen = 'setup' | 'scanning' | 'results'
@@ -746,7 +747,7 @@ function App() {
             aria-label="Dismiss notification"
             onClick={() => setToast(null)}
           >
-            ×
+            <IconX size={13} />
           </button>
         </div>
       )}

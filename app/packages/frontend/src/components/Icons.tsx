@@ -134,6 +134,14 @@ export function IconExternal(props: IconProps) {
   )
 }
 
+export function IconX(props: IconProps) {
+  return (
+    <Icon strokeWidth={2.4} {...props}>
+      <path d="M7 7l10 10M17 7 7 17" />
+    </Icon>
+  )
+}
+
 export function IconDownload(props: IconProps) {
   return (
     <Icon strokeWidth={2.2} {...props}>

@@ -213,7 +213,9 @@ describe('App', () => {
       'role',
       'status',
     )
-    await user.click(screen.getByRole('button', { name: 'Dismiss notification' }))
+    const dismiss = screen.getByRole('button', { name: 'Dismiss notification' })
+    expect(dismiss.querySelector('svg')).toHaveAttribute('aria-hidden', 'true')
+    await user.click(dismiss)
     expect(screen.queryByText(/Showed a\.txt in its folder/i)).not.toBeInTheDocument()
   })
 

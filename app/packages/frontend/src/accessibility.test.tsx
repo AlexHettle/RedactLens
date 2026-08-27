@@ -864,5 +864,10 @@ describe('automated accessibility checks', () => {
     expect(toastText).toContain('overflow-wrap: anywhere')
     expect(toastText).toContain('white-space: normal')
     expect(toastText).not.toContain('text-overflow: ellipsis')
+
+    const dismiss = ruleBlock('.toast__dismiss')
+    expect(dismiss).toContain('display: grid')
+    expect(dismiss).toContain('place-items: center')
+    expect(dismiss).not.toContain('line-height')
   })
 })
