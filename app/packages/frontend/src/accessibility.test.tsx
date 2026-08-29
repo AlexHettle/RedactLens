@@ -449,6 +449,21 @@ describe('automated accessibility checks', () => {
     expect(current).toContain('visibility: visible')
   })
 
+  it('reserves one stable button size for every full-value visibility state', () => {
+    const button = ruleBlock('.finding-values > button')
+    const label = ruleBlock('.finding-values__button-label')
+    const variants = ruleBlock('.finding-values__button-label > span')
+    const current = ruleBlock(".finding-values__button-label > span[data-current='true']")
+
+    expect(button).toContain('display: grid')
+    expect(button).toContain('place-items: center')
+    expect(label).toContain('display: grid')
+    expect(variants).toContain('grid-area: 1 / 1')
+    expect(variants).toContain('visibility: hidden')
+    expect(variants).toContain('white-space: nowrap')
+    expect(current).toContain('visibility: visible')
+  })
+
   it('keeps native numeric steppers clear of rounded input edges', () => {
     const numberInput = ruleBlock(".scan-options__grid input[type='number']")
     const stepper = ruleBlock(".scan-options__grid input[type='number']::-webkit-inner-spin-button")

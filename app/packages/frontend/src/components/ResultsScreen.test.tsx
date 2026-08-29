@@ -285,6 +285,31 @@ describe('ResultsScreen', () => {
     expect(screen.getByText('12*******89')).toBeInTheDocument()
   })
 
+  it('keeps the full-value button stable and disabled while exact values load', async () => {
+    const reveal = deferred<{ values: Array<{ finding_id: string; value: string }> }>()
+    vi.mocked(client.postRevealFindingValues).mockReturnValueOnce(reveal.promise)
+    const user = userEvent.setup()
+    renderResults(makeResult([makeFinding()]))
+
+    const visibility = screen.getByRole('switch', { name: 'Full finding values' })
+    const labels = visibility.querySelectorAll('.finding-values__button-label > span')
+    expect(labels).toHaveLength(2)
+    expect(visibility).toHaveAttribute('data-state', 'hidden')
+
+    await user.click(visibility)
+
+    expect(visibility).toHaveAttribute('data-state', 'hidden')
+    expect(visibility).toBeDisabled()
+    expect(screen.getByText('Show full values')).toHaveAttribute('data-current', 'true')
+    expect(screen.queryByText('Loading full values…')).not.toBeInTheDocument()
+
+    reveal.resolve({ values: [{ finding_id: 'f1', value: '123-45-6789' }] })
+
+    await waitFor(() => expect(visibility).toHaveAttribute('data-state', 'visible'))
+    expect(visibility.querySelectorAll('.finding-values__button-label > span')).toHaveLength(2)
+    expect(screen.getByText('Hide full values')).toHaveAttribute('data-current', 'true')
+  })
+
   it('reveals large result sets in bounded batches and never displays a partial response', async () => {
     const user = userEvent.setup()
     const findings = Array.from({ length: 251 }, (_, index) =>

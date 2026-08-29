@@ -42,6 +42,7 @@ export function FindingValueControl({
       : disabled
         ? 'Values stay masked until the scan and on-device AI checks finish.'
         : 'Values are masked by default. Reveal them temporarily to review exact matches.'
+  const buttonState = visible ? 'visible' : 'hidden'
 
   return (
     <section
@@ -64,10 +65,18 @@ export function FindingValueControl({
         aria-label="Full finding values"
         aria-checked={visible}
         aria-describedby="finding-values-description"
+        data-state={buttonState}
         disabled={disabled || busy}
         onClick={onToggle}
       >
-        {busy ? 'Loading full values…' : visible ? 'Hide full values' : 'Show full values'}
+        <span className="finding-values__button-label">
+          <span data-current={buttonState === 'hidden'} aria-hidden={buttonState !== 'hidden'}>
+            Show full values
+          </span>
+          <span data-current={buttonState === 'visible'} aria-hidden={buttonState !== 'visible'}>
+            Hide full values
+          </span>
+        </span>
       </button>
       {error && (
         <p className="finding-values__error" role="alert">

@@ -140,8 +140,12 @@ test('axe scans results and full-value display with repeated action names', asyn
   expect(new Set(selectorNames).size).toBe(selectorNames.length)
 
   const fullValues = page.getByRole('switch', { name: 'Full finding values' })
-  await expect(fullValues).toHaveText('Show full values')
+  const currentFullValuesLabel = fullValues.locator(
+    '.finding-values__button-label > [data-current="true"]',
+  )
+  await expect(currentFullValuesLabel).toHaveText('Show full values')
   await fullValues.click()
+  await expect(currentFullValuesLabel).toHaveText('Hide full values')
   await expect(page.getByText('super-secret', { exact: true })).toBeVisible()
   await expect(page.getByText('alex@example.com', { exact: true })).toBeVisible()
   await expectNoAxeViolations(page, 'full-value results')

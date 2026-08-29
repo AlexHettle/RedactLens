@@ -2062,6 +2062,8 @@ button {
 
 .finding-values > button {
   min-height: 36px;
+  display: grid;
+  place-items: center;
   flex: 0 0 auto;
   padding: 0 13px;
   border: 1px solid var(--accent);
@@ -2071,6 +2073,20 @@ button {
   font-size: 11.5px;
   font-weight: 700;
   cursor: pointer;
+}
+
+.finding-values__button-label {
+  display: grid;
+}
+
+.finding-values__button-label > span {
+  grid-area: 1 / 1;
+  visibility: hidden;
+  white-space: nowrap;
+}
+
+.finding-values__button-label > span[data-current='true'] {
+  visibility: visible;
 }
 
 .finding-values > button:hover:not(:disabled) {
