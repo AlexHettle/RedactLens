@@ -981,7 +981,7 @@ export default function SetupScreen({ onSubmit, onRequestChange, initial }: Setu
                 </p>
                 <button
                   type="button"
-                  className="setup-secondary-button scan-options__reset"
+                  className="setup-secondary-button scan-options__action"
                   onClick={resetAdvancedScanOptions}
                 >
                   Reset to defaults
@@ -1016,7 +1016,7 @@ export default function SetupScreen({ onSubmit, onRequestChange, initial }: Setu
                   />
                   <button
                     type="button"
-                    className="setup-secondary-button"
+                    className="setup-secondary-button scan-options__action"
                     onClick={checkOllamaAgain}
                     disabled={healthCheckPending}
                   >

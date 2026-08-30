@@ -464,6 +464,13 @@ describe('automated accessibility checks', () => {
     expect(current).toContain('visibility: visible')
   })
 
+  it('keeps the advanced scan action buttons equally sized and aligned', () => {
+    const action = ruleBlock('.scan-options__action')
+
+    expect(action).toContain('width: 124px')
+    expect(action).toContain('flex: none')
+  })
+
   it('keeps native numeric steppers clear of rounded input edges', () => {
     const numberInput = ruleBlock(".scan-options__grid input[type='number']")
     const stepper = ruleBlock(".scan-options__grid input[type='number']::-webkit-inner-spin-button")

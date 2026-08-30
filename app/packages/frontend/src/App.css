@@ -517,7 +517,8 @@ button {
   line-height: 1.45;
 }
 
-.scan-options__reset {
+.scan-options__action {
+  width: 124px;
   flex: none;
 }
 

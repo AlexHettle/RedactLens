@@ -277,9 +277,11 @@ describe('SetupScreen', () => {
     expect(screen.getByRole('button', { name: 'Add' })).toHaveClass('setup-secondary-button')
     expect(screen.getByRole('button', { name: 'Reset to defaults' })).toHaveClass(
       'setup-secondary-button',
+      'scan-options__action',
     )
     expect(screen.getByRole('button', { name: 'Refresh models' })).toHaveClass(
       'setup-secondary-button',
+      'scan-options__action',
     )
     onRequestChange.mockClear()
     await user.click(screen.getByRole('button', { name: 'Reset to defaults' }))
