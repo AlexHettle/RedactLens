@@ -455,6 +455,23 @@ describe('SetupScreen', () => {
     expect(input).toHaveAttribute('aria-describedby', error.id)
   })
 
+  it('does not spellcheck directory names or file extensions', async () => {
+    vi.mocked(client.getDetectors).mockResolvedValue(DETECTORS)
+    vi.mocked(client.getHealth).mockResolvedValue({ status: 'ok', ollama_available: false })
+    const user = userEvent.setup()
+
+    render(<SetupScreen onSubmit={vi.fn()} />)
+    await user.click(screen.getByText('Advanced scan options'))
+
+    for (const label of [
+      /Ignored directory names/i,
+      /Include only extensions/i,
+      /Excluded extensions/i,
+    ]) {
+      expect(screen.getByLabelText(label)).toHaveAttribute('spellcheck', 'false')
+    }
+  })
+
   it.each([
     [/Include only extensions/i, 'included'],
     [/Excluded extensions/i, 'excluded'],

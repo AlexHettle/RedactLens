@@ -1058,6 +1058,7 @@ export default function SetupScreen({ onSubmit, onRequestChange, initial }: Setu
                   Ignored directory names
                   <input
                     type="text"
+                    spellCheck={false}
                     value={ignoredDirectories}
                     onChange={(event) => setIgnoredDirectories(event.target.value)}
                     aria-invalid={ignoredDirectoriesError ? true : undefined}
@@ -1068,6 +1069,7 @@ export default function SetupScreen({ onSubmit, onRequestChange, initial }: Setu
                   Include only extensions
                   <input
                     type="text"
+                    spellCheck={false}
                     placeholder=".py, .txt"
                     aria-invalid={
                       includedExtensionsError || extensionOptionsError ? true : undefined
@@ -1085,6 +1087,7 @@ export default function SetupScreen({ onSubmit, onRequestChange, initial }: Setu
                   Excluded extensions
                   <input
                     type="text"
+                    spellCheck={false}
                     placeholder=".min.js, .map"
                     aria-invalid={
                       excludedExtensionsError || extensionOptionsError ? true : undefined
