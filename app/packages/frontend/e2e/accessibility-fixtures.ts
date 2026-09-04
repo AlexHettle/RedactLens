@@ -201,6 +201,9 @@ export async function installMockApi(page: Page, scanMode: ScanMode = 'complete'
     if (method === 'GET' && pathname === '/detectors') {
       return fulfillJson(route, DETECTORS)
     }
+    if (method === 'POST' && pathname === '/scan-path/validate') {
+      return route.fulfill({ status: 204 })
+    }
     if (method === 'POST' && pathname === '/scans') {
       if (scanMode === 'start-error') {
         return fulfillJson(

@@ -92,6 +92,7 @@ const closeStream = vi.fn()
 beforeEach(() => {
   vi.clearAllMocks()
   vi.mocked(client.postScan).mockReset()
+  vi.mocked(client.validateScanPath).mockReset()
   vi.mocked(client.getScan).mockReset()
   vi.mocked(client.deleteScan).mockReset()
   vi.mocked(client.saveAppearanceTheme).mockReset()
@@ -104,6 +105,7 @@ beforeEach(() => {
   disconnect = undefined
   vi.mocked(client.deleteScan).mockResolvedValue()
   vi.mocked(client.saveAppearanceTheme).mockResolvedValue()
+  vi.mocked(client.validateScanPath).mockResolvedValue()
   vi.mocked(client.getDetectors).mockResolvedValue([
     {
       id: 'us_ssn',

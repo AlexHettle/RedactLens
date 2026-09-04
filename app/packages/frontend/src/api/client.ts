@@ -132,6 +132,14 @@ export function pickPath(kind: 'folder' | 'file'): Promise<{ path: string }> {
   return request<{ path: string }>(`/pick-path?kind=${kind}`, { method: 'POST' })
 }
 
+/** Verifies that a typed local path currently names a regular file or folder. */
+export function validateScanPath(path: string): Promise<void> {
+  return request<void>('/scan-path/validate', {
+    method: 'POST',
+    body: JSON.stringify({ path }),
+  })
+}
+
 /** Reveals the file in the local file manager without launching its content. */
 export function postOpenFile(scanId: string, findingId: string): Promise<{ status: string }> {
   return request<{ status: string }>(`/scans/${encodeURIComponent(scanId)}/open-file`, {

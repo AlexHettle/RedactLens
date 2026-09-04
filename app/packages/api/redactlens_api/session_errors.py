@@ -17,6 +17,7 @@ ErrorCode = Literal[
     "verification_failed",
     "scan_incomplete",
     "scan_failed",
+    "scan_path_invalid",
     "picker_unavailable",
 ]
 

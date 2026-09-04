@@ -318,7 +318,9 @@ class SecurityBoundaryMiddleware:
                 headers = MutableHeaders(scope=message)
                 for name, value in ANTI_FRAMING_HEADERS.items():
                     headers.setdefault(name, value)
-                if request.url.path.startswith(("/scans", "/pick-path", "/launch-session")):
+                if request.url.path.startswith(
+                    ("/scans", "/scan-path", "/pick-path", "/launch-session")
+                ):
                     headers.setdefault("Cache-Control", "no-store")
                     headers.setdefault("X-Content-Type-Options", "nosniff")
             await send(message)

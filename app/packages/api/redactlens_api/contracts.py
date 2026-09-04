@@ -449,6 +449,10 @@ class BrowserUserTarget(StrictRequest):
     category: CategoryValue = "custom"
 
 
+class ScanPathValidationRequest(StrictRequest):
+    path: PathValue
+
+
 class BrowserScanOptions(StrictRequest):
     max_file_size: int = Field(default=100_000_000, ge=1, le=1_000_000_000)
     max_structured_file_size: int = Field(default=50_000_000, ge=1, le=250_000_000)

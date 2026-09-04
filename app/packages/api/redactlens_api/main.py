@@ -12,6 +12,7 @@ launcher (launch.py) relies on.
 
 import logging
 import os
+import stat
 import sys
 import tempfile
 import threading
@@ -44,6 +45,7 @@ from .contracts import (
     RevealedFindingValue,
     RevealFindingsRequest,
     RevealFindingsResponse,
+    ScanPathValidationRequest,
     SessionOpenFileRequest,
     UpdateRemediationRequest,
 )
@@ -273,9 +275,50 @@ def detectors() -> list[DetectorInfo]:
     ]
 
 
+def _validate_scan_path(path: str) -> None:
+    candidate = Path(path)
+    try:
+        metadata = candidate.lstat()
+    except FileNotFoundError as error:
+        raise SessionProblem(
+            "scan_path_invalid",
+            "That scan location does not exist. Choose an existing file or folder and try again.",
+            422,
+        ) from error
+    except OSError as error:
+        raise SessionProblem(
+            "scan_path_invalid",
+            "RedactLens cannot access that scan location. "
+            "Check its permissions or choose another file or folder.",
+            422,
+        ) from error
+
+    reparse_flag = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0)
+    file_attributes = getattr(metadata, "st_file_attributes", 0)
+    is_redirect = stat.S_ISLNK(metadata.st_mode) or bool(
+        reparse_flag and file_attributes & reparse_flag
+    )
+    if is_redirect or not (
+        stat.S_ISREG(metadata.st_mode) or stat.S_ISDIR(metadata.st_mode)
+    ):
+        raise SessionProblem(
+            "scan_path_invalid",
+            "That scan location is not a regular file or folder. Choose another location.",
+            422,
+        )
+
+
+@app.post("/scan-path/validate", status_code=204)
+def validate_scan_path(request: ScanPathValidationRequest) -> Response:
+    _validate_scan_path(request.path)
+    return Response(status_code=204)
+
+
 @app.post("/scans", status_code=201)
 def create_scan(request: BrowserScanRequest) -> PublicScanResult:
     scan_request = request.to_internal()
+    for path in scan_request.paths:
+        _validate_scan_path(path)
     if scan_request.use_llm:
         requested_model = scan_request.ollama_model or DEFAULT_MODEL
         adapter = OllamaAdapter(model=requested_model)

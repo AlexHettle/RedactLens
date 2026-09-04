@@ -333,6 +333,7 @@ def test_mutating_request_requires_the_per_launch_token(tmp_path):
     ("method", "path", "body"),
     [
         ("POST", "/pick-path?kind=folder", None),
+        ("POST", "/scan-path/validate", {"path": "C:/safe"}),
         ("POST", "/scans", {"paths": ["C:/safe"]}),
         (
             "PUT",
@@ -1800,6 +1801,33 @@ def test_pick_path_reports_501_when_no_picker_is_available(monkeypatch):
 
     assert response.status_code == 501
     assert _error_code(response) == "picker_unavailable"
+
+
+def test_scan_path_validation_accepts_existing_files_and_folders(tmp_path):
+    target = tmp_path / "example.txt"
+    target.write_text("safe content")
+
+    assert client.post("/scan-path/validate", json={"path": str(tmp_path)}).status_code == 204
+    assert client.post("/scan-path/validate", json={"path": str(target)}).status_code == 204
+
+
+def test_missing_scan_path_is_rejected_before_a_session_starts(tmp_path):
+    missing = tmp_path / "does-not-exist"
+
+    validation = client.post("/scan-path/validate", json={"path": str(missing)})
+    scan = client.post("/scans", json={"paths": [str(missing)]})
+
+    for response in (validation, scan):
+        assert response.status_code == 422
+        assert response.json() == {
+            "error": {
+                "code": "scan_path_invalid",
+                "message": (
+                    "That scan location does not exist. "
+                    "Choose an existing file or folder and try again."
+                ),
+            }
+        }
 
 
 def test_open_file_uses_the_server_side_path_for_a_session_finding(monkeypatch, tmp_path):

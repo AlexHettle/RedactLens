@@ -145,6 +145,7 @@ beforeEach(() => {
     },
   ])
   vi.mocked(client.getHealth).mockResolvedValue({ status: 'ok', ollama_available: false })
+  vi.mocked(client.validateScanPath).mockResolvedValue()
   vi.mocked(client.postRevealFindingValues).mockResolvedValue({
     values: [{ finding_id: finding.id, value: '123-45-6789' }],
   })

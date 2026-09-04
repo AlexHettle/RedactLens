@@ -106,6 +106,24 @@ describe('API launch authorization', () => {
     expect(String(fetchMock.mock.calls[2][0])).toContain('/pick-path?kind=folder')
   })
 
+  it('checks a typed local path without starting a scan', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponse({ token: TOKEN_ONE }))
+      .mockResolvedValueOnce(new Response(null, { status: 204 }))
+    vi.stubGlobal('fetch', fetchMock)
+    const client = await import('./client')
+
+    await client.validateScanPath('C:\\project')
+
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+    expect(String(fetchMock.mock.calls[1][0])).toMatch(/\/scan-path\/validate$/)
+    const options = fetchMock.mock.calls[1][1] as RequestInit
+    expect(options.method).toBe('POST')
+    expect(JSON.parse(String(options.body))).toEqual({ path: 'C:\\project' })
+    expect(new Headers(options.headers).get('X-RedactLens-Token')).toBe(TOKEN_ONE)
+  })
+
   it('refreshes a stale launch token once after the backend restarts', async () => {
     const fetchMock = vi
       .fn()

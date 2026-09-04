@@ -6,7 +6,7 @@ import {
   type KeyboardEvent,
   type ReactNode,
 } from 'react'
-import { getDetectors, getHealth } from '../api/client'
+import { getDetectors, getHealth, validateScanPath } from '../api/client'
 import type {
   DetectorInfo,
   HealthResponse,
@@ -44,6 +44,11 @@ interface CategoryMeta {
   title: string
   description: string
   icon: ReactNode
+}
+
+interface PathValidation {
+  path: string
+  error: string
 }
 
 const DEFAULT_OLLAMA_MODEL = 'qwen3-coder:30b'
@@ -187,6 +192,17 @@ function scanLabel(path: string): string {
 export default function SetupScreen({ onSubmit, onRequestChange, initial }: SetupScreenProps) {
   const restoredOptions = { ...DEFAULT_SCAN_OPTIONS, ...initial?.options }
   const [path, setPath] = useState(initial?.paths[0] ?? '')
+  const [pathValidation, setPathValidation] = useState<PathValidation | null>(null)
+  const [pathValidationPending, setPathValidationPending] = useState(false)
+  const [pathSubmitPending, setPathSubmitPending] = useState(false)
+  const pathRef = useRef(path)
+  const pathValidationRef = useRef<PathValidation | null>(null)
+  const pathValidationRunRef = useRef(0)
+  const pathValidationInFlightRef = useRef<{
+    path: string
+    promise: Promise<boolean>
+  } | null>(null)
+  const pathSubmitPendingRef = useRef(false)
   const [detectors, setDetectors] = useState<DetectorInfo[]>([])
   const [detectorsLoaded, setDetectorsLoaded] = useState(false)
   const [selectedCategories, setSelectedCategories] = useState<Set<string>>(
@@ -338,10 +354,12 @@ export default function SetupScreen({ onSubmit, onRequestChange, initial }: Setu
   const ignoredDirectoryList = listValues(ignoredDirectories)
   const includedExtensionList = listValues(includedExtensions)
   const excludedExtensionList = listValues(excludedExtensions)
-  const pathError =
+  const pathLengthError =
     textLength(trimmedPath) > MAX_PATH_LENGTH
       ? 'The folder or file path can be up to 4,096 characters. Shorten it before scanning.'
       : ''
+  const checkedPathError = pathValidation?.path === trimmedPath ? pathValidation.error : ''
+  const pathError = pathLengthError || checkedPathError
   const ignoredDirectoriesError = [
     ignoredDirectoryList.length > MAX_OPTION_ENTRIES
       ? 'Use no more than 256 ignored directory names.'
@@ -447,7 +465,8 @@ export default function SetupScreen({ onSubmit, onRequestChange, initial }: Setu
     Boolean(categorySelectionError) ||
     Boolean(optionsError) ||
     Boolean(storedTargetError) ||
-    Boolean(requestSizeError)
+    Boolean(requestSizeError) ||
+    pathSubmitPending
 
   const aiHint =
     health === null || healthCheckPending
@@ -497,6 +516,65 @@ export default function SetupScreen({ onSubmit, onRequestChange, initial }: Setu
     setChunkSizeKb(DEFAULT_SCAN_OPTIONS.chunk_size / 1024)
     setUseRedactLensignore(DEFAULT_SCAN_OPTIONS.use_redactlensignore)
     onRequestChange?.()
+  }
+
+  function updatePath(nextPath: string) {
+    pathRef.current = nextPath
+    pathValidationRunRef.current += 1
+    pathValidationInFlightRef.current = null
+    pathValidationRef.current = null
+    pathSubmitPendingRef.current = false
+    setPath(nextPath)
+    setPathValidation(null)
+    setPathValidationPending(false)
+    setPathSubmitPending(false)
+  }
+
+  function verifyScanPath(): Promise<boolean> {
+    const candidate = pathRef.current.trim()
+    if (!candidate || textLength(candidate) > MAX_PATH_LENGTH) return Promise.resolve(false)
+
+    const inFlight = pathValidationInFlightRef.current
+    if (inFlight?.path === candidate) return inFlight.promise
+
+    const previous = pathValidationRef.current
+    if (previous?.path === candidate) return Promise.resolve(!previous.error)
+
+    const run = ++pathValidationRunRef.current
+    setPathValidationPending(true)
+    const promise = (async () => {
+      try {
+        await validateScanPath(candidate)
+        if (run !== pathValidationRunRef.current || pathRef.current.trim() !== candidate) {
+          return false
+        }
+        const validation = { path: candidate, error: '' }
+        pathValidationRef.current = validation
+        setPathValidation(validation)
+        return true
+      } catch (error) {
+        if (run !== pathValidationRunRef.current || pathRef.current.trim() !== candidate) {
+          return false
+        }
+        const validation = {
+          path: candidate,
+          error:
+            error instanceof Error
+              ? error.message
+              : 'RedactLens could not verify that scan location. Choose it again and retry.',
+        }
+        pathValidationRef.current = validation
+        setPathValidation(validation)
+        return false
+      } finally {
+        if (run === pathValidationRunRef.current) {
+          setPathValidationPending(false)
+          pathValidationInFlightRef.current = null
+        }
+      }
+    })()
+    pathValidationInFlightRef.current = { path: candidate, promise }
+    return promise
   }
 
   function toggleCategory(category: string) {
@@ -560,10 +638,17 @@ export default function SetupScreen({ onSubmit, onRequestChange, initial }: Setu
     )
   }
 
-  function handleSubmit(event: FormEvent) {
+  async function handleSubmit(event: FormEvent) {
     event.preventDefault()
-    if (submitDisabled) return
-    onSubmit(scanRequest())
+    if (submitDisabled || pathSubmitPendingRef.current) return
+
+    const request = scanRequest()
+    pathSubmitPendingRef.current = true
+    setPathSubmitPending(true)
+    const pathIsValid = await verifyScanPath()
+    pathSubmitPendingRef.current = false
+    setPathSubmitPending(false)
+    if (pathIsValid && pathRef.current.trim() === request.paths[0]) onSubmit(request)
   }
 
   return (
@@ -628,17 +713,19 @@ export default function SetupScreen({ onSubmit, onRequestChange, initial }: Setu
             <input
               type="text"
               value={path}
-              onChange={(e) => setPath(e.target.value)}
+              onChange={(event) => updatePath(event.target.value)}
+              onBlur={() => void verifyScanPath()}
               placeholder="Drop a folder or paste a path…"
               aria-label="Folder or file to scan"
               aria-invalid={pathError ? true : undefined}
               aria-describedby={pathError ? 'scan-path-error' : undefined}
+              aria-busy={pathValidationPending ? true : undefined}
             />
           </div>
           <BrowseButton
             onPicked={(chosen) => {
               setPickError(null)
-              setPath(chosen)
+              updatePath(chosen)
               onRequestChange?.()
             }}
             onError={() =>
@@ -1180,7 +1267,12 @@ export default function SetupScreen({ onSubmit, onRequestChange, initial }: Setu
         </div>
 
         <div className="setup__cta-row">
-          <button type="submit" className="cta" disabled={submitDisabled}>
+          <button
+            type="submit"
+            className="cta"
+            disabled={submitDisabled}
+            aria-busy={pathSubmitPending ? true : undefined}
+          >
             <IconSearch size={19} />
             {scanLabel(trimmedPath)}
           </button>

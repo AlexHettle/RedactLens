@@ -10,6 +10,7 @@ vi.mock('../api/client')
 beforeEach(() => {
   vi.clearAllMocks()
   localStorage.clear()
+  vi.mocked(client.validateScanPath).mockResolvedValue()
 })
 
 afterEach(() => {
@@ -427,6 +428,38 @@ describe('SetupScreen', () => {
     expect(pathInput).toHaveAttribute('aria-invalid', 'true')
     expect(pathInput).toHaveAttribute('aria-describedby', error.id)
     expect(submit).toBeDisabled()
+  })
+
+  it('keeps a missing typed location on setup and marks the path invalid', async () => {
+    vi.mocked(client.getDetectors).mockResolvedValue(DETECTORS)
+    vi.mocked(client.getHealth).mockResolvedValue({ status: 'ok', ollama_available: false })
+    vi.mocked(client.validateScanPath).mockRejectedValueOnce(
+      new Error(
+        'That scan location does not exist. Choose an existing file or folder and try again.',
+      ),
+    )
+    const onSubmit = vi.fn()
+    const user = userEvent.setup()
+
+    render(<SetupScreen onSubmit={onSubmit} />)
+    await user.type(screen.getByLabelText(/Folder or file to scan/i), 'not-a-real-location')
+    const submit = await screen.findByRole('button', { name: /Scan this location/i })
+    await user.click(submit)
+
+    const error = await screen.findByRole('alert')
+    const pathInput = screen.getByLabelText(/Folder or file to scan/i)
+    expect(client.validateScanPath).toHaveBeenCalledWith('not-a-real-location')
+    expect(onSubmit).not.toHaveBeenCalled()
+    expect(error).toHaveTextContent(/scan location does not exist/i)
+    expect(pathInput).toHaveAttribute('aria-invalid', 'true')
+    expect(pathInput).toHaveAttribute('aria-describedby', error.id)
+    expect(submit).toBeDisabled()
+
+    await user.clear(pathInput)
+    await user.type(pathInput, 'C:\\existing')
+    expect(screen.queryByText(/scan location does not exist/i)).not.toBeInTheDocument()
+    expect(pathInput).not.toHaveAttribute('aria-invalid')
+    expect(submit).toBeEnabled()
   })
 
   it('validates ignored-directory count, length, and name syntax before submitting', async () => {
