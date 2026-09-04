@@ -62,7 +62,16 @@ function isExpectedCompletedRequestCancellation(failure, requests, responses) {
     request.method === "PUT" &&
     response.status === 204 &&
     pathname === "/appearance/theme";
-  return completedScanDeletion || closedEventStream || savedAppearanceTheme;
+  const completedScanPathValidation =
+    request.method === "POST" &&
+    response.status === 204 &&
+    pathname === "/scan-path/validate";
+  return (
+    completedScanDeletion ||
+    closedEventStream ||
+    savedAppearanceTheme ||
+    completedScanPathValidation
+  );
 }
 
 /** Keep transport failures except completed requests Chrome cancels during UI transitions. */

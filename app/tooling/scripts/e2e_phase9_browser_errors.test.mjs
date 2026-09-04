@@ -114,6 +114,11 @@ test("filters only completed request cancellations owned by UI transitions", () 
       method: "PUT",
       url: "http://127.0.0.1:8000/appearance/theme",
     },
+    {
+      requestId: "scan-path-validation",
+      method: "POST",
+      url: "http://127.0.0.1:8000/scan-path/validate",
+    },
   ];
   const responses = [
     {
@@ -131,6 +136,11 @@ test("filters only completed request cancellations owned by UI transitions", () 
       status: 204,
       url: "http://127.0.0.1:8000/appearance/theme",
     },
+    {
+      requestId: "scan-path-validation",
+      status: 204,
+      url: "http://127.0.0.1:8000/scan-path/validate",
+    },
   ];
   const expectedCancellations = [
     {
@@ -147,6 +157,12 @@ test("filters only completed request cancellations owned by UI transitions", () 
     },
     {
       requestId: "appearance-theme",
+      errorText: "net::ERR_ABORTED",
+      canceled: true,
+      blockedReason: null,
+    },
+    {
+      requestId: "scan-path-validation",
       errorText: "net::ERR_ABORTED",
       canceled: true,
       blockedReason: null,

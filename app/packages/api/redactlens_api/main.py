@@ -298,9 +298,7 @@ def _validate_scan_path(path: str) -> None:
     is_redirect = stat.S_ISLNK(metadata.st_mode) or bool(
         reparse_flag and file_attributes & reparse_flag
     )
-    if is_redirect or not (
-        stat.S_ISREG(metadata.st_mode) or stat.S_ISDIR(metadata.st_mode)
-    ):
+    if is_redirect or not (stat.S_ISREG(metadata.st_mode) or stat.S_ISDIR(metadata.st_mode)):
         raise SessionProblem(
             "scan_path_invalid",
             "That scan location is not a regular file or folder. Choose another location.",
