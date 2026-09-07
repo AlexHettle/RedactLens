@@ -462,6 +462,87 @@ describe('SetupScreen', () => {
     expect(submit).toBeEnabled()
   })
 
+  it('validates a typed path after the user pauses and reports errors before submission', async () => {
+    vi.useFakeTimers()
+    vi.mocked(client.getDetectors).mockResolvedValue(DETECTORS)
+    vi.mocked(client.getHealth).mockResolvedValue({ status: 'ok', ollama_available: false })
+    let rejectValidation!: (reason?: unknown) => void
+    vi.mocked(client.validateScanPath).mockImplementationOnce(
+      () =>
+        new Promise<void>((_resolve, reject) => {
+          rejectValidation = reject
+        }),
+    )
+    const onSubmit = vi.fn()
+
+    render(<SetupScreen onSubmit={onSubmit} />)
+    const pathInput = screen.getByLabelText(/Folder or file to scan/i)
+    fireEvent.change(pathInput, { target: { value: 'not-a-real-location' } })
+    const submit = screen.getByRole('button', { name: /Scan this location/i })
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(399)
+    })
+    expect(client.validateScanPath).not.toHaveBeenCalled()
+    expect(screen.queryByText(/scan location does not exist/i)).not.toBeInTheDocument()
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1)
+    })
+    expect(client.validateScanPath).toHaveBeenCalledWith('not-a-real-location')
+    expect(pathInput).toHaveAttribute('aria-busy', 'true')
+    expect(submit).toBeDisabled()
+
+    await act(async () => {
+      rejectValidation(
+        new Error(
+          'That scan location does not exist. Choose an existing file or folder and try again.',
+        ),
+      )
+    })
+
+    expect(screen.getByRole('alert')).toHaveTextContent(/scan location does not exist/i)
+    expect(pathInput).toHaveAttribute('aria-invalid', 'true')
+    expect(pathInput).not.toHaveAttribute('aria-busy')
+    expect(submit).toBeDisabled()
+    expect(onSubmit).not.toHaveBeenCalled()
+  })
+
+  it('ignores an obsolete path-validation response after the path changes', async () => {
+    vi.useFakeTimers()
+    vi.mocked(client.getDetectors).mockResolvedValue(DETECTORS)
+    vi.mocked(client.getHealth).mockResolvedValue({ status: 'ok', ollama_available: false })
+    let rejectFirstValidation!: (reason?: unknown) => void
+    vi.mocked(client.validateScanPath)
+      .mockImplementationOnce(
+        () =>
+          new Promise<void>((_resolve, reject) => {
+            rejectFirstValidation = reject
+          }),
+      )
+      .mockResolvedValueOnce()
+
+    render(<SetupScreen onSubmit={vi.fn()} />)
+    const pathInput = screen.getByLabelText(/Folder or file to scan/i)
+    fireEvent.change(pathInput, { target: { value: 'old-location' } })
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(400)
+    })
+
+    fireEvent.change(pathInput, { target: { value: 'C:\\existing' } })
+    await act(async () => {
+      rejectFirstValidation(new Error('That scan location does not exist.'))
+    })
+    expect(screen.queryByText(/scan location does not exist/i)).not.toBeInTheDocument()
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(400)
+    })
+    expect(client.validateScanPath).toHaveBeenNthCalledWith(2, 'C:\\existing')
+    expect(pathInput).not.toHaveAttribute('aria-invalid')
+    expect(screen.getByRole('button', { name: /Scan this location/i })).toBeEnabled()
+  })
+
   it('validates ignored-directory count, length, and name syntax before submitting', async () => {
     vi.mocked(client.getDetectors).mockResolvedValue(DETECTORS)
     vi.mocked(client.getHealth).mockResolvedValue({ status: 'ok', ollama_available: false })
@@ -1153,6 +1234,7 @@ describe('SetupScreen', () => {
     expect(screen.getByLabelText(/Folder or file to scan/i)).toHaveValue(
       'C:\\Users\\me\\Documents\\taxes',
     )
+    expect(client.validateScanPath).toHaveBeenCalledWith('C:\\Users\\me\\Documents\\taxes')
     await waitFor(() => expect(browse).toHaveFocus())
   })
 

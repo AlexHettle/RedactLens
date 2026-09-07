@@ -1,4 +1,5 @@
 import {
+  useCallback,
   useEffect,
   useRef,
   useState,
@@ -58,6 +59,7 @@ const OLLAMA_MODEL_STORAGE_KEY = 'redactlens-ollama-model'
 const LEGACY_OLLAMA_MODEL_STORAGE_KEY = 'redactscout-ollama-model'
 const OLLAMA_STARTUP_RETRY_INTERVAL_MS = 3_000
 const OLLAMA_STARTUP_RETRY_WINDOW_MS = 120_000
+const SCAN_PATH_VALIDATION_DEBOUNCE_MS = 400
 const ON_DEVICE_HELP =
   'Your files and scan excerpts are processed locally on this computer. RedactLens does not upload them.'
 
@@ -247,6 +249,63 @@ export default function SetupScreen({ onSubmit, onRequestChange, initial }: Setu
   )
   const [advancedOptionsOpen, setAdvancedOptionsOpen] = useState(false)
   const [onDeviceHelpOpen, setOnDeviceHelpOpen] = useState(false)
+
+  const verifyScanPath = useCallback((): Promise<boolean> => {
+    const candidate = pathRef.current.trim()
+    if (!candidate || textLength(candidate) > MAX_PATH_LENGTH) return Promise.resolve(false)
+
+    const inFlight = pathValidationInFlightRef.current
+    if (inFlight?.path === candidate) return inFlight.promise
+
+    const previous = pathValidationRef.current
+    if (previous?.path === candidate) return Promise.resolve(!previous.error)
+
+    const run = ++pathValidationRunRef.current
+    setPathValidationPending(true)
+    const promise = (async () => {
+      try {
+        await validateScanPath(candidate)
+        if (run !== pathValidationRunRef.current || pathRef.current.trim() !== candidate) {
+          return false
+        }
+        const validation = { path: candidate, error: '' }
+        pathValidationRef.current = validation
+        setPathValidation(validation)
+        return true
+      } catch (error) {
+        if (run !== pathValidationRunRef.current || pathRef.current.trim() !== candidate) {
+          return false
+        }
+        const validation = {
+          path: candidate,
+          error:
+            error instanceof Error
+              ? error.message
+              : 'RedactLens could not verify that scan location. Choose it again and retry.',
+        }
+        pathValidationRef.current = validation
+        setPathValidation(validation)
+        return false
+      } finally {
+        if (run === pathValidationRunRef.current) {
+          setPathValidationPending(false)
+          pathValidationInFlightRef.current = null
+        }
+      }
+    })()
+    pathValidationInFlightRef.current = { path: candidate, promise }
+    return promise
+  }, [setPathValidation, setPathValidationPending])
+
+  useEffect(() => {
+    const candidate = path.trim()
+    if (!candidate || textLength(candidate) > MAX_PATH_LENGTH) return
+
+    const timer = window.setTimeout(() => {
+      void verifyScanPath()
+    }, SCAN_PATH_VALIDATION_DEBOUNCE_MS)
+    return () => window.clearTimeout(timer)
+  }, [path, verifyScanPath])
 
   useEffect(() => {
     getDetectors()
@@ -461,6 +520,7 @@ export default function SetupScreen({ onSubmit, onRequestChange, initial }: Setu
   const submitDisabled =
     !trimmedPath ||
     Boolean(pathError) ||
+    pathValidationPending ||
     !detectorsLoaded ||
     Boolean(categorySelectionError) ||
     Boolean(optionsError) ||
@@ -528,53 +588,6 @@ export default function SetupScreen({ onSubmit, onRequestChange, initial }: Setu
     setPathValidation(null)
     setPathValidationPending(false)
     setPathSubmitPending(false)
-  }
-
-  function verifyScanPath(): Promise<boolean> {
-    const candidate = pathRef.current.trim()
-    if (!candidate || textLength(candidate) > MAX_PATH_LENGTH) return Promise.resolve(false)
-
-    const inFlight = pathValidationInFlightRef.current
-    if (inFlight?.path === candidate) return inFlight.promise
-
-    const previous = pathValidationRef.current
-    if (previous?.path === candidate) return Promise.resolve(!previous.error)
-
-    const run = ++pathValidationRunRef.current
-    setPathValidationPending(true)
-    const promise = (async () => {
-      try {
-        await validateScanPath(candidate)
-        if (run !== pathValidationRunRef.current || pathRef.current.trim() !== candidate) {
-          return false
-        }
-        const validation = { path: candidate, error: '' }
-        pathValidationRef.current = validation
-        setPathValidation(validation)
-        return true
-      } catch (error) {
-        if (run !== pathValidationRunRef.current || pathRef.current.trim() !== candidate) {
-          return false
-        }
-        const validation = {
-          path: candidate,
-          error:
-            error instanceof Error
-              ? error.message
-              : 'RedactLens could not verify that scan location. Choose it again and retry.',
-        }
-        pathValidationRef.current = validation
-        setPathValidation(validation)
-        return false
-      } finally {
-        if (run === pathValidationRunRef.current) {
-          setPathValidationPending(false)
-          pathValidationInFlightRef.current = null
-        }
-      }
-    })()
-    pathValidationInFlightRef.current = { path: candidate, promise }
-    return promise
   }
 
   function toggleCategory(category: string) {
@@ -714,7 +727,6 @@ export default function SetupScreen({ onSubmit, onRequestChange, initial }: Setu
               type="text"
               value={path}
               onChange={(event) => updatePath(event.target.value)}
-              onBlur={() => void verifyScanPath()}
               placeholder="Drop a folder or paste a path…"
               aria-label="Folder or file to scan"
               aria-invalid={pathError ? true : undefined}
@@ -726,6 +738,7 @@ export default function SetupScreen({ onSubmit, onRequestChange, initial }: Setu
             onPicked={(chosen) => {
               setPickError(null)
               updatePath(chosen)
+              void verifyScanPath()
               onRequestChange?.()
             }}
             onError={() =>
