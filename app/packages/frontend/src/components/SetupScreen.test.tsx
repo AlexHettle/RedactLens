@@ -85,7 +85,9 @@ describe('SetupScreen', () => {
     expect(await screen.findByRole('checkbox', { name: /Credentials/i })).toBeChecked()
     expect(screen.getByRole('checkbox', { name: /Personal info/i })).toBeChecked()
     const submit = screen.getByRole('button', { name: /Scan this location/i })
-    expect(submit).toBeEnabled()
+    expect(submit).toBeDisabled()
+    await waitFor(() => expect(submit).toBeEnabled())
+    expect(client.validateScanPath).toHaveBeenCalledWith('/restored/path')
 
     await user.click(submit)
 
@@ -122,7 +124,9 @@ describe('SetupScreen', () => {
     await user.type(screen.getByLabelText(/Value or description/i), 'ACME-1234')
     await user.click(screen.getByRole('button', { name: 'Add' }))
 
-    await user.click(screen.getByRole('button', { name: /Scan this location/i }))
+    const submit = screen.getByRole('button', { name: /Scan this location/i })
+    await waitFor(() => expect(submit).toBeEnabled())
+    await user.click(submit)
 
     expect(onSubmit).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -180,7 +184,7 @@ describe('SetupScreen', () => {
     expect(credentialCheckbox).not.toHaveAttribute('aria-describedby')
     expect(personalCheckbox).not.toHaveAttribute('aria-invalid')
     expect(personalCheckbox).not.toHaveAttribute('aria-describedby')
-    expect(submit).toBeEnabled()
+    await waitFor(() => expect(submit).toBeEnabled())
   })
 
   it('exposes and submits every Phase 8 scan option', async () => {
@@ -209,7 +213,9 @@ describe('SetupScreen', () => {
     await replace(/Structured-document workers/i, '2')
     await replace(/Text chunk size/i, '128')
     await user.click(screen.getByRole('checkbox', { name: /Apply root-level/i }))
-    await user.click(screen.getByRole('button', { name: /Scan this location/i }))
+    const submit = screen.getByRole('button', { name: /Scan this location/i })
+    await waitFor(() => expect(submit).toBeEnabled())
+    await user.click(submit)
 
     expect(onSubmit).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -306,7 +312,9 @@ describe('SetupScreen', () => {
       expect(localStorage.getItem('redactlens-ollama-model')).toBe('qwen3-coder:30b'),
     )
 
-    await user.click(screen.getByRole('button', { name: /Scan this location/i }))
+    const submit = screen.getByRole('button', { name: /Scan this location/i })
+    await waitFor(() => expect(submit).toBeEnabled())
+    await user.click(submit)
     expect(onSubmit).toHaveBeenCalledWith(
       expect.objectContaining({
         ollama_model: 'qwen3-coder:30b',
@@ -420,7 +428,8 @@ describe('SetupScreen', () => {
 
     fireEvent.change(pathInput, { target: { value: 'x'.repeat(4_096) } })
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
-    expect(submit).toBeEnabled()
+    expect(submit).toBeDisabled()
+    await waitFor(() => expect(submit).toBeEnabled())
 
     fireEvent.change(pathInput, { target: { value: 'x'.repeat(4_097) } })
     const error = screen.getByRole('alert')
@@ -459,7 +468,8 @@ describe('SetupScreen', () => {
     await user.type(pathInput, 'C:\\existing')
     expect(screen.queryByText(/scan location does not exist/i)).not.toBeInTheDocument()
     expect(pathInput).not.toHaveAttribute('aria-invalid')
-    expect(submit).toBeEnabled()
+    expect(submit).toBeDisabled()
+    await waitFor(() => expect(submit).toBeEnabled())
   })
 
   it('validates a typed path after the user pauses and reports errors before submission', async () => {
@@ -479,6 +489,8 @@ describe('SetupScreen', () => {
     const pathInput = screen.getByLabelText(/Folder or file to scan/i)
     fireEvent.change(pathInput, { target: { value: 'not-a-real-location' } })
     const submit = screen.getByRole('button', { name: /Scan this location/i })
+    expect(pathInput).toHaveAttribute('aria-busy', 'true')
+    expect(submit).toBeDisabled()
 
     await act(async () => {
       await vi.advanceTimersByTimeAsync(399)
@@ -839,7 +851,9 @@ describe('SetupScreen', () => {
     expect(modelSelect).toHaveValue('llama3.2:3b')
     expect(modelSelect).toHaveAttribute('aria-expanded', 'false')
     await user.click(screen.getByRole('switch', { name: /On-device AI/i }))
-    await user.click(screen.getByRole('button', { name: /Scan this location/i }))
+    const submit = screen.getByRole('button', { name: /Scan this location/i })
+    await waitFor(() => expect(submit).toBeEnabled())
+    await user.click(submit)
 
     expect(localStorage.getItem('redactlens-ollama-model')).toBe('llama3.2:3b')
     expect(onSubmit).toHaveBeenCalledWith(

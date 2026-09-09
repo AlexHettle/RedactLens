@@ -417,7 +417,11 @@ export default function SetupScreen({ onSubmit, onRequestChange, initial }: Setu
     textLength(trimmedPath) > MAX_PATH_LENGTH
       ? 'The folder or file path can be up to 4,096 characters. Shorten it before scanning.'
       : ''
-  const checkedPathError = pathValidation?.path === trimmedPath ? pathValidation.error : ''
+  const pathValidationIsCurrent = pathValidation?.path === trimmedPath
+  const checkedPathError = pathValidationIsCurrent ? pathValidation.error : ''
+  const pathConfirmedValid = pathValidationIsCurrent && !pathValidation.error
+  const pathValidationOutstanding =
+    Boolean(trimmedPath) && !pathLengthError && !pathValidationIsCurrent
   const pathError = pathLengthError || checkedPathError
   const ignoredDirectoriesError = [
     ignoredDirectoryList.length > MAX_OPTION_ENTRIES
@@ -518,7 +522,7 @@ export default function SetupScreen({ onSubmit, onRequestChange, initial }: Setu
   const targetValidationError =
     targetDraftError || storedTargetError || requestSizeError || targetActionError || ''
   const submitDisabled =
-    !trimmedPath ||
+    !pathConfirmedValid ||
     Boolean(pathError) ||
     pathValidationPending ||
     !detectorsLoaded ||
@@ -731,7 +735,7 @@ export default function SetupScreen({ onSubmit, onRequestChange, initial }: Setu
               aria-label="Folder or file to scan"
               aria-invalid={pathError ? true : undefined}
               aria-describedby={pathError ? 'scan-path-error' : undefined}
-              aria-busy={pathValidationPending ? true : undefined}
+              aria-busy={pathValidationPending || pathValidationOutstanding ? true : undefined}
             />
           </div>
           <BrowseButton

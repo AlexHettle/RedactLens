@@ -131,7 +131,9 @@ afterEach(() => {
 
 async function startScan(user: ReturnType<typeof userEvent.setup>) {
   await user.type(await screen.findByLabelText(/Folder or file to scan/i), 'C:\\some\\path')
-  await user.click(screen.getByRole('button', { name: /Scan this location/i }))
+  const submit = screen.getByRole('button', { name: /Scan this location/i })
+  await waitFor(() => expect(submit).toBeEnabled())
+  await user.click(submit)
   await screen.findByRole('heading', { name: /Looking through your files/i })
   await waitFor(() => expect(client.subscribeToScanEvents).toHaveBeenCalled())
 }
@@ -314,7 +316,9 @@ describe('App', () => {
     const user = userEvent.setup()
     render(<App />)
     await user.type(await screen.findByLabelText(/Folder or file to scan/i), 'C:\\some\\path')
-    await user.click(screen.getByRole('button', { name: /Scan this location/i }))
+    const submit = screen.getByRole('button', { name: /Scan this location/i })
+    await waitFor(() => expect(submit).toBeEnabled())
+    await user.click(submit)
     expect(await screen.findByRole('alert')).toHaveTextContent('backend down')
     expect(screen.getByRole('alert')).toHaveFocus()
     expect(screen.getByRole('heading', { name: 'RedactLens' })).toBeInTheDocument()
@@ -770,7 +774,11 @@ describe('App', () => {
     expect(screen.getByRole('button', { name: 'On device' })).toHaveFocus()
     await user.tab()
     expect(screen.getByLabelText(/Folder or file to scan/i)).toHaveFocus()
-    await user.keyboard('C:\\some\\path{Enter}')
+    await user.keyboard('C:\\some\\path')
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /Scan this location/i })).toBeEnabled(),
+    )
+    await user.keyboard('{Enter}')
     await screen.findByRole('heading', { name: /Looking through your files/i })
     await act(async () => {
       receiveEvent?.(event({ sequence: 2, type: 'scan_completed', state: 'complete' }))
@@ -809,7 +817,9 @@ describe('App', () => {
     render(<App />)
     await user.type(await screen.findByLabelText(/Folder or file to scan/i), 'C:\\some\\path')
     await user.click(await screen.findByRole('switch', { name: /On-device AI/i }))
-    await user.click(screen.getByRole('button', { name: /Scan this location/i }))
+    const submit = screen.getByRole('button', { name: /Scan this location/i })
+    await waitFor(() => expect(submit).toBeEnabled())
+    await user.click(submit)
 
     expect(client.postScan).toHaveBeenCalledTimes(1)
     expect(client.postScan).toHaveBeenCalledWith(expect.objectContaining({ use_llm: true }))
@@ -1041,7 +1051,9 @@ describe('App', () => {
     await replace(/Structured-document workers/i, '2')
     await replace(/Text chunk size/i, '128')
     await user.click(screen.getByRole('checkbox', { name: /Apply root-level/i }))
-    await user.click(screen.getByRole('button', { name: /Scan this location/i }))
+    const submit = screen.getByRole('button', { name: /Scan this location/i })
+    await waitFor(() => expect(submit).toBeEnabled())
+    await user.click(submit)
     await screen.findByRole('heading', { name: /Looking through your files/i })
     await waitFor(() => expect(client.subscribeToScanEvents).toHaveBeenCalled())
 
@@ -1128,7 +1140,9 @@ describe('App', () => {
     render(<App />)
 
     await user.type(await screen.findByLabelText(/Folder or file to scan/i), 'C:\\some\\path')
-    await user.click(screen.getByRole('button', { name: /Scan this location/i }))
+    const submit = screen.getByRole('button', { name: /Scan this location/i })
+    await waitFor(() => expect(submit).toBeEnabled())
+    await user.click(submit)
     expect(await screen.findByRole('heading', { name: /Here.s what I found/ })).toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: 'Show in folder' }))
@@ -1195,7 +1209,9 @@ describe('App', () => {
     try {
       render(<App />)
       await user.type(await screen.findByLabelText(/Folder or file to scan/i), 'C:\\old')
-      await user.click(screen.getByRole('button', { name: /Scan this location/i }))
+      const oldSubmit = screen.getByRole('button', { name: /Scan this location/i })
+      await waitFor(() => expect(oldSubmit).toBeEnabled())
+      await user.click(oldSubmit)
       expect(
         await screen.findByRole('heading', { name: /Here.s what I found/i }),
       ).toBeInTheDocument()
@@ -1211,7 +1227,9 @@ describe('App', () => {
       const target = await screen.findByLabelText(/Folder or file to scan/i)
       await user.clear(target)
       await user.type(target, 'C:\\new')
-      await user.click(screen.getByRole('button', { name: /Scan this location/i }))
+      const newSubmit = screen.getByRole('button', { name: /Scan this location/i })
+      await waitFor(() => expect(newSubmit).toBeEnabled())
+      await user.click(newSubmit)
       expect(await screen.findByRole('button', { name: 'Show in folder' })).toBeInTheDocument()
 
       await act(async () => {
