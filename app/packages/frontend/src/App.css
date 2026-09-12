@@ -1559,6 +1559,10 @@ button {
   color: var(--on-action-accent);
   cursor: pointer;
   box-shadow: 0 14px 30px -12px rgba(14, 100, 127, 0.58);
+  transition:
+    background-color 180ms ease,
+    box-shadow 180ms ease,
+    color 180ms ease;
 }
 
 .cta:hover:not(:disabled) {
@@ -3461,6 +3465,7 @@ button {
   .ai-card,
   .target-box__ai-warning,
   .target-box__ai-warning-inner,
+  .cta,
   .finding,
   .path-input,
   .target-box__input,
